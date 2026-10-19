@@ -5,6 +5,8 @@ import type { OnlineClient } from '../net/OnlineClient';
 import type { ConnectionStatus } from '../types';
 import {
   AVATAR_COLORS,
+  COCKTAIL_BY_CODE,
+  COLOR_HEX,
   HAND_SIZE,
   KIND_COLOR,
   KIND_LABEL,
@@ -43,7 +45,7 @@ interface Props {
   connection: ConnectionStatus;
 }
 
-type Panel = null | 'cocktail' | 'recipes' | 'menu' | { special: string };
+type Panel = null | 'cocktail' | 'recipes' | 'menu' | { special: string } | { cocktail: string };
 interface Toast {
   id: number;
   text: string;
@@ -134,8 +136,7 @@ export function GameScreen({ client, room, game, connection }: Props) {
     if (myTurn && excess > 0 && canEnd) return `Sobran ${excess}: elegí cuáles tirar y terminá el turno.`;
     if (selected.length > 0) return `${selected.length} elegida${selected.length === 1 ? '' : 's'}.`;
     if (!myTurn) return null;
-    if (me.recipeBook.mode === 'completo' && me.recipeBook.canMake.length > 0)
-      return `Podés armar ${me.recipeBook.canMake.length === 1 ? 'un cóctel' : `${me.recipeBook.canMake.length} cócteles`}: tocá Armar cóctel.`;
+    if (me.recipeBook.mode === 'completo' && me.recipeBook.canMake.length === 0) return 'Con esta mano no sale ningún cóctel. Probá cambiar o un shot.';
     if (me.seeingLevel === 'en_pedo' || me.seeingLevel === 'al_borde') return 'No ves los números ni sabés bien qué tenés. Suerte.';
     return 'Tocá cartas para elegirlas.';
   })();
@@ -151,7 +152,22 @@ export function GameScreen({ client, room, game, connection }: Props) {
   const rivals = game.players.filter((p) => p.id !== me.id);
   const current = game.players.find((p) => p.id === game.currentPlayerId);
   const pending = game.pending;
-  const specialPanel = panel !== null && typeof panel === 'object' ? me.specials.find((s) => s.id === panel.special) : undefined;
+  const specialPanel = panel !== null && typeof panel === 'object' && 'special' in panel ? me.specials.find((s) => s.id === panel.special) : undefined;
+  const cocktailPanel = panel === 'cocktail' ? null : panel !== null && typeof panel === 'object' && 'cocktail' in panel ? panel.cocktail : undefined;
+  const book = me.recipeBook;
+  const quick: { cocktailCode: string; points?: number }[] =
+    !myTurn || book.mode === 'ilegible'
+      ? []
+      : book.mode === 'completo'
+        ? book.canMake.map((o) => ({ cocktailCode: o.cocktailCode, points: o.points.total }))
+        : book.canMake;
+  const openCocktail = (code: string) => {
+    if (book.mode === 'completo') {
+      const option = book.canMake.find((o) => o.cocktailCode === code);
+      if (option) setSelected(option.handles);
+    }
+    setPanel({ cocktail: code });
+  };
 
   const handGrid = (ghost: boolean) => (
     <div className={`hand-grid${me.hand.length > HAND_SIZE ? ' five' : ''}${ghost ? ' ghost-hand' : ''}`} aria-hidden={ghost || undefined}>
@@ -291,6 +307,23 @@ export function GameScreen({ client, room, game, connection }: Props) {
         </button>
       </div>
 
+      {quick.length > 0 ? (
+        <div className="quick">
+          <span className="label">Podés armar</span>
+          <div className="quick-row">
+            {quick.map((o) => {
+              const c = COCKTAIL_BY_CODE.get(o.cocktailCode)!;
+              return (
+                <button key={o.cocktailCode} type="button" className="quick-btn" style={{ '--k': COLOR_HEX[c.color] } as CSSProperties} onClick={() => openCocktail(o.cocktailCode)}>
+                  <span className="n">{c.name}</span>
+                  <span className="p">{o.points !== undefined ? `${o.points} pts · ` : ''}{c.alcohol}%</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      ) : null}
+
       {me.eliminated ? (
         <div className="banner">Quedaste afuera. Mirá cómo sigue la partida.</div>
       ) : (
@@ -398,8 +431,8 @@ export function GameScreen({ client, room, game, connection }: Props) {
         <ResponseSheet key={`${game.turn}-${pending?.senderId}-${pending?.alcohol}`} game={game} defenseSeconds={room.options.defenseSeconds} name={name} onRespond={(a) => void act(a)} />
       ) : null}
 
-      {panel === 'cocktail' && myTurn ? (
-        <CocktailSheet game={game} selected={selected} onSelect={setSelected} onClose={() => setPanel(null)} onLaunch={(a) => void act(a, () => setPanel(null))} />
+      {cocktailPanel !== undefined && myTurn ? (
+        <CocktailSheet key={cocktailPanel ?? 'lista'} game={game} selected={selected} initialCode={cocktailPanel} onSelect={setSelected} onClose={() => setPanel(null)} onLaunch={(a) => void act(a, () => setPanel(null))} />
       ) : null}
 
       {panel === 'recipes' ? <RecipeSheet game={game} onClose={() => setPanel(null)} /> : null}
