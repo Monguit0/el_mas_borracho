@@ -82,6 +82,8 @@ export const GAME_ERROR_MESSAGES: Readonly<Record<GameErrorCode, string>> = {
   WRONG_SPECIAL: 'Esa carta especial no se juega así.',
   SPECIAL_HAND_FULL: 'Ya tenés 3 cartas especiales.',
   NO_SPECIALS_LEFT: 'No quedan cartas especiales.',
+  BAD_ASK: 'Para pedir, elegí 3 cartas de la misma categoría y lo que querés de esa categoría.',
+  NOT_AVAILABLE: 'No queda ninguna de esas: pedí otra.',
 };
 
 export function roomError(code: RoomErrorCode, message: string = ROOM_ERROR_MESSAGES[code]): AppError {

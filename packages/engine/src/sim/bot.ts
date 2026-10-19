@@ -1,7 +1,7 @@
 // Un bot simple para las partidas simuladas. Ve lo que vería una persona:
 // cuanto más borracho, más se equivoca armando y peor elige qué copia usar.
 
-import { COCKTAILS, COMMON_GLASS, type Card } from '../cards.js';
+import { CARD_DEFS, COCKTAILS, COMMON_GLASS, type Card } from '../cards.js';
 import { actionCost, currentPlayer, requiredDiscards, type Action } from '../engine.js';
 import type { Rand } from '../rng.js';
 import { drunkLevel, type DrunkLevel, type RecipeMode } from '../rules.js';
@@ -67,6 +67,8 @@ export function botTurnAction(state: GameState, rand: Rand): Action {
       return { type: 'MAKE_COCKTAIL', cocktailCode: choice.cocktailCode, cardIds, targetId: chooseTarget(targets, rand), specialIds: unique };
     }
     const ranked = rankHand(me.hand, rand, r.recipeMode);
+    const asking = chooseAsk(state, me, ranked.map((x) => x.card));
+    if (asking) return asking;
     const table = state.discard[state.discard.length - 1];
     const risky = MISTAKE_CHANCE[seeing] > 0 && me.shame >= r.shameLimit - 1;
     if (table && state.matchDiscardsThisTurn < r.matchDiscardsPerTurn && !risky) {
@@ -146,6 +148,40 @@ export function rankHand(hand: Card[], rand: Rand, mode: RecipeMode = 'exacta'):
     return { card, value: value + rand() * 0.01 };
   });
   return ranked.sort((a, b) => a.value - b.value);
+}
+
+/**
+ * Pedir ingrediente: si a un cóctel le faltan 1 o 2 cartas de una misma categoría y tiene 3 de esa
+ * categoría que no le sirven para ese cóctel, las cambia (2 a elección solo si las 3 son del mismo color).
+ */
+function chooseAsk(state: GameState, me: PlayerState, ranked: Card[]): Action | null {
+  const r = state.rules;
+  if (state.asksThisTurn >= r.asksPerTurn) return null;
+  const pool = [...state.deck, ...state.discard.slice(0, -1)];
+  const names = new Set(me.hand.map((c) => c.name));
+  const hasGlass = me.hand.some((c) => c.category === 'cristaleria');
+  for (const cocktail of COCKTAILS) {
+    const missing = cocktail.recipe.filter((n) => {
+      const def = CARD_DEFS.find((d) => d.name === n)!;
+      if (def.category === 'cristaleria' && (hasGlass || names.has(COMMON_GLASS)) && r.recipeMode !== 'exacta') return false;
+      return !names.has(n);
+    });
+    if (missing.length === 0 || missing.length > 2) continue;
+    const category = CARD_DEFS.find((d) => d.name === missing[0])!.category;
+    if (missing.some((n) => CARD_DEFS.find((d) => d.name === n)!.category !== category)) continue;
+    if (!missing.every((n) => pool.filter((c) => c.name === n).length >= missing.filter((m) => m === n).length)) continue;
+    const spare = ranked.filter((c) => c.category === category && !cocktail.recipe.includes(c.name));
+    let give: Card[] | undefined;
+    if (missing.length === 2) {
+      const byColor = new Map<string, Card[]>();
+      for (const c of spare) byColor.set(c.color, [...(byColor.get(c.color) ?? []), c]);
+      give = [...byColor.values()].find((g) => g.length >= r.askCards)?.slice(0, r.askCards);
+    } else if (spare.length >= r.askCards) {
+      give = spare.slice(0, r.askCards);
+    }
+    if (give) return { type: 'ASK_INGREDIENT', cardIds: give.map((c) => c.id), names: missing };
+  }
+  return null;
 }
 
 function chooseTarget(targets: PlayerState[], rand: Rand): string {

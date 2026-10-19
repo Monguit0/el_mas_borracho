@@ -59,6 +59,8 @@ function toAction(wire: WireAction, ids: string[]): Action {
     case 'SHOT':
     case 'MATCH_DISCARD':
       return { type: wire.type, cardIds: ids };
+    case 'ASK_INGREDIENT':
+      return { type: 'ASK_INGREDIENT', cardIds: ids, names: [...wire.names] };
     case 'MAKE_COCKTAIL':
       return {
         type: 'MAKE_COCKTAIL',

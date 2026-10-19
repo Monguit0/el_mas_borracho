@@ -653,3 +653,71 @@ describe('irse de la partida', () => {
     expect(res.state.phase).toBe('finished');
   });
 });
+
+describe('pedir ingrediente', () => {
+  const ask = (cardIds: string[], names: string[]): Action => ({ type: 'ASK_INGREDIENT', cardIds, names });
+
+  it('3 de una categoría y distinto color: 1 que elegís y 2 al azar', () => {
+    const give = [card('Vodka', 'verde'), card('Gin', 'bordo'), card('Sal', 'verde')];
+    const want = card('Fernet');
+    const s = fixedGame({ hands: [[...give, ...filler(5)], filler(8)], deck: [want, ...filler(10)], table: card('Jarra') });
+    const res = act(s, 'p0', ask(give.map((c) => c.id), ['Fernet']));
+    const me = res.state.players[0]!;
+    expect(me.hand).toHaveLength(8);
+    expect(me.hand.some((c) => c.id === want.id)).toBe(true);
+    expect(give.every((c) => !me.hand.includes(c))).toBe(true);
+    expect(res.state.discard.slice(-3).map((c) => c.id)).toEqual(give.map((c) => c.id));
+    expect(res.state.deck.some((c) => c.id === want.id)).toBe(false);
+    expect(res.state.playedThisTurn).toBe(0); // no cuenta como jugada
+  });
+
+  it('distinto color: no se pueden elegir 2', () => {
+    const give = [card('Vodka', 'verde'), card('Gin', 'bordo'), card('Sal', 'verde')];
+    const s = fixedGame({ hands: [[...give, ...filler(5)], filler(8)], deck: [card('Fernet'), card('Coca'), ...filler(5)] });
+    expect(err(applyAction(s, 'p0', ask(give.map((c) => c.id), ['Fernet', 'Coca'])))).toBe('BAD_ASK');
+  });
+
+  it('mismo color: 2 que elegís y 1 al azar', () => {
+    const give = [card('Vodka', 'azul'), card('Gin', 'azul'), card('Sal', 'azul')];
+    const a = card('Fernet');
+    const b = card('Coca');
+    const s = fixedGame({ hands: [[...give, ...filler(5)], filler(8)], deck: [a, ...filler(5), b, ...filler(5)], table: card('Jarra') });
+    const res = act(s, 'p0', ask(give.map((c) => c.id), ['Fernet', 'Coca']));
+    const me = res.state.players[0]!;
+    expect(me.hand).toHaveLength(8);
+    expect(me.hand.some((c) => c.id === a.id) && me.hand.some((c) => c.id === b.id)).toBe(true);
+    expect(res.events.find((e) => e.type === 'INGREDIENT_ASKED')).toMatchObject({ sameColor: true, names: ['Fernet', 'Coca'] });
+  });
+
+  it('tienen que ser 3 de la misma categoría, y lo que pedís también', () => {
+    const mixed = [card('Vodka'), card('Gin'), card('Coctelera')];
+    const s = fixedGame({ hands: [[...mixed, ...filler(5)], filler(8)], deck: [card('Fernet'), ...filler(5)] });
+    expect(err(applyAction(s, 'p0', ask(mixed.map((c) => c.id), ['Fernet'])))).toBe('BAD_ASK');
+    const two = mixed.slice(0, 2).map((c) => c.id);
+    expect(err(applyAction(s, 'p0', ask(two, ['Fernet'])))).toBe('BAD_ASK');
+    const ok3 = [card('Vodka'), card('Gin'), card('Sal')];
+    const s2 = fixedGame({ hands: [[...ok3, ...filler(5)], filler(8)], deck: [card('Coctelera'), ...filler(5)] });
+    expect(err(applyAction(s2, 'p0', ask(ok3.map((c) => c.id), ['Coctelera'])))).toBe('BAD_ASK');
+  });
+
+  it('si no queda en el mazo se busca en el descarte; si no hay, no se puede', () => {
+    const give = [card('Vodka', 'verde'), card('Gin', 'bordo'), card('Sal', 'verde')];
+    const old = card('Fernet');
+    const table = card('Jarra');
+    const s = fixedGame({ hands: [[...give, ...filler(5)], filler(8)], deck: filler(10), table, patch: (st) => st.discard.unshift(old) });
+    const res = act(s, 'p0', ask(give.map((c) => c.id), ['Fernet']));
+    expect(res.state.players[0]!.hand.some((c) => c.id === old.id)).toBe(true);
+    expect(err(applyAction(s, 'p0', ask(give.map((c) => c.id), ['Coca'])))).toBe('NOT_AVAILABLE');
+    // La carta de la mesa no se puede pedir.
+    const s2 = fixedGame({ hands: [[...give, ...filler(5)], filler(8)], deck: filler(10), table: card('Fernet') });
+    expect(err(applyAction(s2, 'p0', ask(give.map((c) => c.id), ['Fernet'])))).toBe('NOT_AVAILABLE');
+  });
+
+  it('una vez por turno', () => {
+    const give = [card('Vodka', 'verde'), card('Gin', 'bordo'), card('Sal', 'verde')];
+    const more = [card('Lima', 'verde'), card('Pisco', 'bordo'), card('Coca', 'verde')];
+    const s = fixedGame({ hands: [[...give, ...more, ...filler(2)], filler(8)], deck: [card('Fernet'), card('Fernet'), ...filler(10)] });
+    const st = act(s, 'p0', ask(give.map((c) => c.id), ['Fernet'])).state;
+    expect(err(applyAction(st, 'p0', ask(more.map((c) => c.id), ['Fernet'])))).toBe('LIMIT_REACHED');
+  });
+});

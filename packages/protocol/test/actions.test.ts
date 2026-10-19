@@ -11,6 +11,11 @@ describe('jugadas que llegan del celular', () => {
     expect(handlesOf(parseWireAction(counter)!)).toEqual(['h1']);
     const cocktail = { type: 'MAKE_COCKTAIL', cocktailCode: 'C01', cards: ['h1'], targetId: 'j1', specialIds: ['s1'] };
     expect(parseWireAction(cocktail)).toEqual(cocktail);
+    const ask = { type: 'ASK_INGREDIENT', cards: ['h1', 'h2', 'h3'], names: ['Fernet', 'Coca'] };
+    expect(parseWireAction(ask)).toEqual(ask);
+    expect(handlesOf(parseWireAction(ask)!)).toEqual(['h1', 'h2', 'h3']);
+    expect(parseWireAction({ ...ask, names: [] })).toBeNull();
+    expect(parseWireAction({ ...ask, names: ['a', 'b', 'c'] })).toBeNull();
   });
 
   it('rechaza campos de más, tipos equivocados y listas enormes', () => {

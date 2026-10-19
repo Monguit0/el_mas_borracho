@@ -204,6 +204,7 @@ Al empezar: cada uno recibe **8 cartas**, arranca con 0% de alcohol y 0 puntos, 
 2. **Cambiar cartas (opcional).** Dos maneras, y podés usar las dos:
    - **Por puntos:** cada punto que pagás te deja descartar una carta y agarrar otra del mazo.
    - **Con un shot:** sumás 5% de alcohol y elegís cuántas cartas descartar; levantás la misma cantidad. Podés tomar más de uno, pero cada shot del turno pega el doble que el anterior (5%, 10%, 20%…). Ojo: si el shot te pasa del 100%, quebrás.
+   - **Pedir ingrediente** (pedido de osky el 19/10): entregás 3 cartas de una misma categoría y recibís 3. Elegís 1 de esa categoría (por nombre) y las otras 2 salen al azar del mazo, de cualquier tipo y color. Si las 3 que entregás son además del mismo color, elegís 2 y solo 1 sale al azar. Lo que pedís sale del mazo y, si no queda, del descarte (nunca la carta de la mesa); si no hay ninguna, pedís otra. **(propuesta)** Una vez por turno, gratis, y no cuenta como jugada para poder cerrar el turno. Si estás en visión doble y no estás seguro del color, elegís 1 y, si eran del mismo color, igual te tocan las otras 2 al azar.
 3. **Descartar por coincidencia (opcional, una vez por turno).** Elegís las cartas que quieras de tu mano (no hace falta tirar todas las que coinciden) que coincidan en **número o símbolo** con la carta de la mesa (la de arriba del descarte). Cada carta tiene que coincidir con la de la mesa, no entre ellas. Si todas coinciden, van al descarte (la última que tirás pasa a ser la nueva carta de la mesa) y levantás la misma cantidad.
    - Si alguna no coincide, es un **papelón**: no se descarta ninguna, se te suma un papelón, **te tomás un shot de castigo y se termina tu turno** (decidido por osky). El shot sale al precio del próximo shot del turno (5%, o 10% si ya tomaste uno). Si te sobran cartas, se descartan al azar hasta quedar con 8 **(propuesta)**. Con 3 papelones quedás afuera por "¡Estás pasando vergüenza!".
    - Al empezar la partida se da vuelta una carta del mazo para que haya carta en la mesa.
@@ -370,7 +371,9 @@ Con un bot que juega razonable, 20 a 25 partidas por variante. Una "vuelta" es u
 | Lo anterior, con precios que se duplican y shot por pasar | 14 | 16 | 17 |
 | Lo anterior, con descarte por coincidencia y papelones | 12 | 15 | 16 |
 | Sin shot por pasar, jugar sí o sí y papelón con shot de castigo | 21 | 28 | 31 |
-| **Con cartas especiales (lo que quedó, 19/10)** | **19** | **23** | **25** |
+| Con cartas especiales (19/10) | 19 | 23 | 25 |
+| Con especiales y cualquier vaso (19/10) | 13 | 16 | 17 |
+| **Con pedir ingrediente (lo que quedó, 19/10)** | **9** | **10** | **9** |
 
 Antes de las cartas especiales (100 partidas por cantidad de jugadores): la mayoría de las partidas dura entre 10 y 39 vueltas. En una partida hay unos 100 descartes por coincidencia, unos 21 cócteles lanzados y unos 6 papelones. Un 27% de los que quedan afuera cae por cócteles y un 63% por los shots que se toman para conseguir algo que tirar. Esto último es lo que hace el bot: si no tiene jugada, se toma shots hasta que le salga una, y con 2 papelones y borracho prefiere el shot antes que arriesgarse a descartar. El asiento no da ventaja. Nunca se trabó ninguna partida y siempre hubo un solo ganador.
 

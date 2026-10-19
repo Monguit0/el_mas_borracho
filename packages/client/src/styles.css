@@ -1045,3 +1045,26 @@ button:disabled {
     opacity: 0;
   }
 }
+
+.ask-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+
+.ask-name {
+  padding: 9px 10px;
+  border-radius: 10px;
+  border: 2px solid rgba(0, 0, 0, 0.12);
+  background: var(--cream-soft);
+  color: var(--wood);
+  font-family: var(--body);
+  font-size: 15px;
+  text-align: left;
+}
+
+.ask-name[aria-pressed='true'] {
+  border-color: var(--verde);
+  box-shadow: inset 0 0 0 1px var(--verde);
+  font-weight: 600;
+}
