@@ -4,7 +4,7 @@
 import { COCKTAIL_BY_CODE, PRINTED_DECK, copiesFor, type Card } from './cards.js';
 import { mulberry32, shuffleInPlace } from './rng.js';
 import { DEFAULT_RULES, type RulesConfig } from './rules.js';
-import { matchesRecipe, scoreCocktail, type PointsBreakdown } from './scoring.js';
+import { cocktailAlcohol, matchesRecipe, scoreCocktail, type PointsBreakdown } from './scoring.js';
 import { printedSpecials, type SpecialCard, type SpecialCode } from './specials.js';
 import type { GameState, OutReason, PaidAction, PlayerState } from './state.js';
 
@@ -272,7 +272,7 @@ export function applyAction(prev: GameState, playerId: string, action: Action): 
       const others = Array.from({ length: n - 1 }, (_, k) => state.players[(start + 1 + k) % n]!).filter((p) =>
         canBeTargeted(p, playerId),
       );
-      let alcohol = cocktail.alcohol + (codes.includes('semana_dificil') ? r.hardWeekAlcohol : 0);
+      let alcohol = cocktailAlcohol(cocktail, cards, r) + (codes.includes('semana_dificil') ? r.hardWeekAlcohol : 0);
       let queue = r.cocktailTarget === 'todos' ? others.map((p) => p.id) : [];
       if (codes.includes('jarra')) {
         // El doble, repartido entre todos los rivales (redondeando para arriba).
@@ -473,8 +473,9 @@ function resolveDefense(state: GameState, action: RespondAction, events: GameEve
         state.discard.push(...cards);
         if (matchesRecipe(cocktail, cards, r.recipeMode)) {
           const points = scoreCocktail(cocktail, cards, r.bonus);
-          events.push({ type: 'COCKTAIL_MADE', playerId: target.id, targetId: sender.id, cocktailCode: cocktail.code, cards, points, alcohol: cocktail.alcohol });
-          const res = drinkCocktail(sender, cocktail.alcohol);
+          const alcohol = cocktailAlcohol(cocktail, cards, r);
+          events.push({ type: 'COCKTAIL_MADE', playerId: target.id, targetId: sender.id, cocktailCode: cocktail.code, cards, points, alcohol });
+          const res = drinkCocktail(sender, alcohol);
           events.push({ type: 'COCKTAIL_DRUNK', drinkerId: sender.id, fromId: target.id, cocktailCode: cocktail.code, ...res });
           target.points += points.total;
           events.push({ type: 'POINTS_EARNED', playerId: target.id, points: points.total });

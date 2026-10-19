@@ -16,6 +16,7 @@ import {
   describeEvent,
   drunkIntensity,
   targetsFor,
+  optionAlcohol,
 } from '../lib/game';
 import { Card } from '../components/Card';
 import { CocktailSheet } from '../components/CocktailSheet';
@@ -155,11 +156,11 @@ export function GameScreen({ client, room, game, connection }: Props) {
   const specialPanel = panel !== null && typeof panel === 'object' && 'special' in panel ? me.specials.find((s) => s.id === panel.special) : undefined;
   const cocktailPanel = panel === 'cocktail' ? null : panel !== null && typeof panel === 'object' && 'cocktail' in panel ? panel.cocktail : undefined;
   const book = me.recipeBook;
-  const quick: { cocktailCode: string; points?: number }[] =
+  const quick: { cocktailCode: string; points?: number; wrongGlass?: boolean }[] =
     !myTurn || book.mode === 'ilegible'
       ? []
       : book.mode === 'completo'
-        ? book.canMake.map((o) => ({ cocktailCode: o.cocktailCode, points: o.points.total }))
+        ? book.canMake.map((o) => ({ cocktailCode: o.cocktailCode, points: o.points.total, wrongGlass: o.wrongGlass }))
         : book.canMake;
   const openCocktail = (code: string) => {
     if (book.mode === 'completo') {
@@ -316,7 +317,10 @@ export function GameScreen({ client, room, game, connection }: Props) {
               return (
                 <button key={o.cocktailCode} type="button" className="quick-btn" style={{ '--k': COLOR_HEX[c.color] } as CSSProperties} onClick={() => openCocktail(o.cocktailCode)}>
                   <span className="n">{c.name}</span>
-                  <span className="p">{o.points !== undefined ? `${o.points} pts · ` : ''}{c.alcohol}%</span>
+                  <span className="p">
+                    {o.points !== undefined ? `${o.points} pts · ` : ''}
+                    {optionAlcohol(o.cocktailCode, o.wrongGlass)}%{o.wrongGlass ? ' · otro vaso' : ''}
+                  </span>
                 </button>
               );
             })}

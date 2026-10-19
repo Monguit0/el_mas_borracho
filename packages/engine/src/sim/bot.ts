@@ -126,6 +126,7 @@ export function rankHand(hand: Card[], rand: Rand, mode: RecipeMode = 'exacta'):
   }
   const names = new Set(hand.map((c) => c.name));
   const seen = new Set<string>();
+  let glassKept = false;
   const ranked = hand.map((card) => {
     let value = 0;
     for (const c of COCKTAILS) {
@@ -134,6 +135,11 @@ export function rankHand(hand: Card[], rand: Rand, mode: RecipeMode = 'exacta'):
       value = Math.max(value, have / c.recipe.length);
     }
     if (card.name === COMMON_GLASS) value = 0.5;
+    // Con cualquier vaso sirve: se guarda uno (el que más cerca está de una receta).
+    if (mode === 'vaso' && card.category === 'cristaleria') {
+      value = Math.max(value, glassKept ? 0.1 : 0.5);
+      glassKept = true;
+    }
     // La segunda copia del mismo nombre sobra casi siempre.
     if (seen.has(card.name)) value *= 0.3;
     seen.add(card.name);
