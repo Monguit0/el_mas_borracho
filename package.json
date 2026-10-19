@@ -1,11 +1,24 @@
 {
   "name": "el-mas-borracho",
   "private": true,
-  "workspaces": ["packages/*"],
+  "workspaces": [
+    "packages/*"
+  ],
   "scripts": {
-    "test": "npm test -w @borracho/engine",
-    "typecheck": "npm run typecheck -w @borracho/engine",
+    "dev": "npm run dev -w @borracho/server",
+    "start": "npm run start -w @borracho/server",
+    "test": "npm test --workspaces --if-present",
+    "typecheck": "npm run typecheck --workspaces --if-present",
     "sim": "npm run sim -w @borracho/engine --",
     "check": "npm run typecheck && npm test"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.0",
+    "vitest": "^5.0.3",
+    "tsx": "^4.19.0",
+    "@types/node": "^22.0.0"
   }
 }

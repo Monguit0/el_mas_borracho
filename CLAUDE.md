@@ -8,10 +8,13 @@ Juego de cartas online por turnos (2 a 6 jugadores, desde el celular). Las regla
 - Rioplatense, corto y claro. No es programador: prueba jugando con amigos.
 - Si una regla se puede leer de dos maneras, preguntar o avisar cuál se eligió y anotarla acá.
 - Para lo visual, mockups antes de programar.
+- Pedir permiso antes de cada subida a `main` (es la rama que va a publicar Render). El trabajo va en ramas con PR.
+- El repo de Diez Mil (`Monguit0/diez-mil_2`) no se toca: solo se usó de base para copiar el servidor. El Más Borracho se publica como un servicio aparte.
+- Guía general: el spec base de Diez Mil (subido al proyecto) con plataforma, salas, pruebas y plan por fases.
 
 ## Estado
 
-Fase 1 (motor y pruebas) en curso. Todavía no hay servidor ni pantallas. Repo: github.com/Monguit0/el_mas_borracho.
+Fase 1 (motor) hecha. Fase 2 (salas y servidor) en la rama `fase-2-servidor`. Faltan pantallas (fase 3) y publicación en Render (fase 4). Repo: github.com/Monguit0/el_mas_borracho.
 
 ## Estructura
 
@@ -22,10 +25,13 @@ Fase 1 (motor y pruebas) en curso. Todavía no hay servidor ni pantallas. Repo: 
   - `scoring.ts`: puntos del cóctel (base + bonus) y validación de recetas.
   - `view.ts`: lo que ve cada jugador según su borrachera (mano, carta de la mesa y `recipeBook`: completo / solo_nombres / ilegible). Las cartas viajan con `handle` que cambia cada turno; el servidor los traduce con `resolveHandles`.
   - `sim/`: bot y partidas simuladas.
+  - `removePlayer`: el que se va de la sala en medio de la partida queda afuera (`outReason: 'abandono'`).
+- `packages/protocol`: lo que viaja entre servidor y celular. `WireAction` (las cartas de la mano van por handle, no por id; `parseWireAction` valida estricto), `RoomView` (la partida es el `playerView` del motor + `defenseEndsAt`), eventos de Socket.IO, errores en español, opciones de la sala (`barMax` 100/150, `defenseSeconds` 6/10, `deckCopies` 1/2), emojis.
+- `packages/server`: Express 5 + Socket.IO 4, copiado de Diez Mil y adaptado. Salas con código, sesiones con token (se guarda el hash), reconexión, anfitrión, límites de pedidos. `game/gameService.ts` traduce handles con `resolveHandles` (si no cuadran, `CARDS_CHANGED`) y arranca el reloj de respuesta; si vence, `autoDrink`. Ganchos de prueba con `ENABLE_TEST_HOOKS=1`: `/__test__/rooms/:code/{seed,hand,stats,drop}`.
 
 ## Comandos
 
-- `npm install`, `npm run check` (tipos + pruebas), `npm run sim -- 50` (partidas simuladas por cantidad de jugadores).
+- `npm install`, `npm run check` (tipos + pruebas de los tres paquetes), `npm run sim -- 50` (partidas simuladas por cantidad de jugadores), `npm start` (servidor en :3001, `/api/health`).
 
 ## Decisiones e interpretaciones
 
@@ -46,3 +52,4 @@ Fase 1 (motor y pruebas) en curso. Todavía no hay servidor ni pantallas. Repo: 
 - Descarte por coincidencia (`MATCH_DISCARD`), decidido por osky: una vez por turno, cada carta tiene que coincidir en número o símbolo con la carta de la mesa (tope del descarte), no en cadena. Si alguna no coincide: papelón (`shame`), no se descarta nada, shot de castigo (`PENALTY_SHOT`, al precio del próximo shot) y se corta el turno (`forceEndTurn`, sobrantes al azar abajo de la mesa). Con 3 papelones, afuera por vergüenza (`outReason: 'verguenza'`). Interpretación: cada error = 1 papelón.
 - La carta de la mesa se muestra con la borrachera del que mira (`tableCard` en la vista). Se da vuelta una al empezar; al rearmar el mazo y al sacar a un jugador, la carta de la mesa no cambia.
 - Opción `cocktailTarget: 'todos'` (en prueba, no decidida; por defecto 'uno'): el cóctel le pega a todos los rivales, empezando por el elegido y en orden de mesa. Cada uno se defiende por separado (`pending.queue`); el que lanza cobra una sola vez. En la simulación, 6 jugadores bajan de ~180 a ~63 turnos; con 2 no cambia nada.
+- Servidor: una desconexión no pasa el turno. Si al que le tiran un cóctel no responde (o está desconectado), al vencer el tiempo se lo toma. Un jugador que se va en medio de la partida queda afuera; si era su turno pasa al siguiente, y si tenía un cóctel enfrente, el cóctel sigue con el próximo de la cola o se pierde (el que lo tiró no cobra).

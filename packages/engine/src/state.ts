@@ -2,6 +2,9 @@ import type { Card } from './cards.js';
 import type { RulesConfig } from './rules.js';
 import type { SpecialCard } from './specials.js';
 
+/** Por qué quedó afuera: pasó el 100%, hizo 3 papelones, o se fue de la sala. */
+export type OutReason = 'quiebra' | 'verguenza' | 'abandono';
+
 export interface PlayerState {
   id: string;
   name: string;
@@ -10,7 +13,7 @@ export interface PlayerState {
   points: number;
   eliminated: boolean;
   /** Por qué quedó afuera. */
-  outReason: 'quiebra' | 'verguenza' | null;
+  outReason: OutReason | null;
   /** Papelones: descartes por coincidencia mal hechos. Con 3, perdés. */
   shame: number;
   /** Turnos propios que le quedan al café (0 = sin café). */

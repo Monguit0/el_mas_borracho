@@ -7,7 +7,7 @@ import { hashString, mulberry32, shuffleInPlace } from './rng.js';
 import { drunkLevel, type DrunkLevel } from './rules.js';
 import { bestCocktailOptions, type CocktailOption } from './scoring.js';
 import { SPECIAL_BY_CODE, type SpecialCard } from './specials.js';
-import type { GameState, PaidAction, PlayerState } from './state.js';
+import type { GameState, OutReason, PaidAction, PlayerState } from './state.js';
 
 export interface HandCardView {
   /** Identificador que cambia cada turno y con cada cambio de alcohol: no sirve para recordar cartas. */
@@ -62,7 +62,7 @@ export interface PlayerView {
     handCount: number;
     shame: number;
     eliminated: boolean;
-    outReason: 'quiebra' | 'verguenza' | null;
+    outReason: OutReason | null;
     /** Cuántas especiales tiene (cuáles, no se ve). */
     specialCount: number;
     /** Lo que está a la vista en su lugar de la mesa: comida y conductor designado. */

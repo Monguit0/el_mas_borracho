@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { CARD_DEFS, COCKTAILS, COLORS, NUMBERS, PRINTED_DECK, SYMBOLS, copiesFor } from '../src/cards.js';
-import { actionCost, applyAction, createGame, type Action, type ActionResult } from '../src/engine.js';
+import { actionCost, applyAction, createGame, removePlayer, type Action, type ActionResult } from '../src/engine.js';
 import { makeRules } from '../src/rules.js';
 import { matchesRecipe, scoreCocktail } from '../src/scoring.js';
 import { COCKTAIL_BY_CODE } from '../src/cards.js';
@@ -598,5 +598,35 @@ describe('quiebra y ganador', () => {
     const copy = structuredClone(s);
     act(s, 'p0', { type: 'SHOT', cardIds: [s.players[0]!.hand[0]!.id] });
     expect(s).toEqual(copy);
+  });
+});
+
+describe('irse de la partida', () => {
+  it('si se va el del turno, pasa al siguiente y queda afuera por abandono', () => {
+    const s = fixedGame({ hands: [filler(9), filler(8), filler(8)] });
+    const res = removePlayer(s, 'p0');
+    if (!res.ok) throw new Error(res.error);
+    expect(res.state.players[0]).toMatchObject({ eliminated: true, outReason: 'abandono', hand: [] });
+    expect(res.state.players[res.state.currentIndex]!.id).toBe('p1');
+    expect(res.events.map((e) => e.type)).toContain('PLAYER_LEFT');
+  });
+
+  it('si se va al que le estaban tirando, el cóctel sigue con el próximo o se cierra', () => {
+    const hand = [...destornillador(), ...filler(5)];
+    const s = fixedGame({ hands: [hand, filler(8), filler(8)], specials: [[], ['mani'], []] });
+    const thrown = act(s, 'p0', { type: 'MAKE_COCKTAIL', cocktailCode: 'C01', cardIds: hand.slice(0, 4).map((c) => c.id), targetId: 'p1' }).state;
+    expect(thrown.phase).toBe('defense');
+    const res = removePlayer(thrown, 'p1');
+    if (!res.ok) throw new Error(res.error);
+    expect(res.state.phase).toBe('main');
+    expect(res.state.pending).toBeNull();
+    expect(res.state.players[0]!.points).toBe(0);
+  });
+
+  it('con dos jugadores, el que queda gana', () => {
+    const res = removePlayer(fixedGame({ hands: [filler(9), filler(8)] }), 'p1');
+    if (!res.ok) throw new Error(res.error);
+    expect(res.state.winnerId).toBe('p0');
+    expect(res.state.phase).toBe('finished');
   });
 });
