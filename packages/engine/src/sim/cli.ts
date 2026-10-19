@@ -40,6 +40,7 @@ for (const [label, key] of [
   ['Shots de castigo por papelón', 'PENALTY_SHOT'],
   ['Cambios por punto', 'CARD_SWAPPED'],
   ['Descartes por coincidencia', 'MATCH_DISCARDED'],
+  ['Ingredientes pedidos', 'INGREDIENT_ASKED'],
   ['Papelones', 'SHAME'],
   ['Vasos de agua', 'WATER_DRUNK'],
   ['Cafés', 'COFFEE_DRUNK'],

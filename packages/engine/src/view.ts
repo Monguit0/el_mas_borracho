@@ -52,6 +52,8 @@ export interface PlayerView {
     costs: Record<PaidAction, number>;
     /** Todavía no jugaste nada este turno: no podés cerrarlo. */
     mustPlay: boolean;
+    /** Todavía puede pedir ingrediente este turno. */
+    canAsk: boolean;
     /** Tu mano especial. Se lee siempre, por más borracho que estés. */
     specials: (SpecialCard & { text: string })[];
   };
@@ -128,6 +130,7 @@ export function playerView(state: GameState, viewerId: string): PlayerView {
       recipeBook,
       costs: costsFor(state, viewer),
       mustPlay: state.rules.mustPlay && state.playedThisTurn === 0 && state.players[state.currentIndex]!.id === viewer.id,
+      canAsk: state.asksThisTurn < state.rules.asksPerTurn,
       specials: viewer.specials.map((sp) => ({ ...sp, text: SPECIAL_BY_CODE.get(sp.code)!.text })),
     },
     players: state.players.map((p) => ({

@@ -19,6 +19,7 @@ import {
   optionAlcohol,
 } from '../lib/game';
 import { Card } from '../components/Card';
+import { AskSheet, askable } from '../components/AskSheet';
 import { CocktailSheet } from '../components/CocktailSheet';
 import { Countdown, ResponseSheet } from '../components/ResponseSheet';
 import { RecipeSheet } from '../components/RecipeSheet';
@@ -46,7 +47,7 @@ interface Props {
   connection: ConnectionStatus;
 }
 
-type Panel = null | 'cocktail' | 'recipes' | 'menu' | { special: string } | { cocktail: string };
+type Panel = null | 'cocktail' | 'recipes' | 'menu' | 'ask' | { special: string } | { cocktail: string };
 interface Toast {
   id: number;
   text: string;
@@ -131,10 +132,12 @@ export function GameScreen({ client, room, game, connection }: Props) {
   const enough = (cost: number) => me.points >= cost;
   const noTargets = targetsFor(game).length === 0;
   const canEnd = !me.mustPlay || me.hand.length === 0 || noTargets;
+  const canAsk = askable(game, selected) !== null;
 
   const hint = (() => {
     if (me.eliminated) return null;
     if (myTurn && excess > 0 && canEnd) return `Sobran ${excess}: elegí cuáles tirar y terminá el turno.`;
+    if (myTurn && canAsk) return '3 de la misma categoría: podés pedir.';
     if (selected.length > 0) return `${selected.length} elegida${selected.length === 1 ? '' : 's'}.`;
     if (!myTurn) return null;
     if (me.recipeBook.mode === 'completo' && me.recipeBook.canMake.length === 0) return 'Con esta mano no sale ningún cóctel. Probá cambiar o un shot.';
@@ -362,17 +365,26 @@ export function GameScreen({ client, room, game, connection }: Props) {
       {myTurn ? (
         <div className="dock">
           <div className="row" style={{ gap: 8 }}>
-            <button type="button" className="btn btn-verde" style={{ flex: 1.3, height: 50, fontSize: 19 }} disabled={busy} onClick={() => setPanel('cocktail')}>
+            <button type="button" className="btn btn-verde" style={{ flex: 1.5, height: 50, fontSize: 16, whiteSpace: 'nowrap', padding: '0 6px', minWidth: 0, letterSpacing: 0.8, }} disabled={busy} onClick={() => setPanel('cocktail')}>
               Armar cóctel
             </button>
             <button
               type="button"
               className="btn btn-ghost"
-              style={{ flex: 1, height: 50, fontSize: 17, borderColor: 'var(--bordo)', color: 'var(--cream)' }}
+              style={{ flex: 1, height: 50, fontSize: 16, padding: '0 6px', minWidth: 0, letterSpacing: 0.8, borderColor: 'var(--bordo)', color: 'var(--cream)' }}
               disabled={busy || selected.length === 0}
               onClick={() => void act({ type: 'MATCH_DISCARD', cards: selected })}
             >
               Descartar
+            </button>
+            <button
+              type="button"
+              className="btn btn-ghost"
+              style={{ flex: 0.8, height: 50, fontSize: 16, padding: '0 6px', minWidth: 0, letterSpacing: 0.8, borderColor: 'var(--gold)', color: 'var(--cream)' }}
+              disabled={busy || !canAsk}
+              onClick={() => setPanel('ask')}
+            >
+              Pedir
             </button>
           </div>
           <div className="row" style={{ gap: 6 }}>
@@ -437,6 +449,10 @@ export function GameScreen({ client, room, game, connection }: Props) {
 
       {cocktailPanel !== undefined && myTurn ? (
         <CocktailSheet key={cocktailPanel ?? 'lista'} game={game} selected={selected} initialCode={cocktailPanel} onSelect={setSelected} onClose={() => setPanel(null)} onLaunch={(a) => void act(a, () => setPanel(null))} />
+      ) : null}
+
+      {panel === 'ask' && myTurn ? (
+        <AskSheet game={game} selected={selected} busy={busy} onClose={() => setPanel(null)} onAsk={(a) => void act(a, () => setPanel(null))} />
       ) : null}
 
       {panel === 'recipes' ? <RecipeSheet game={game} onClose={() => setPanel(null)} /> : null}

@@ -1,7 +1,7 @@
 // La única puerta de entrada a las reglas: applyAction(estado, jugador, acción).
 // No modifica el estado que recibe; devuelve uno nuevo y los eventos de lo que pasó.
 
-import { COCKTAIL_BY_CODE, PRINTED_DECK, copiesFor, type Card } from './cards.js';
+import { CARD_DEFS, COCKTAIL_BY_CODE, PRINTED_DECK, copiesFor, type Card } from './cards.js';
 import { mulberry32, shuffleInPlace } from './rng.js';
 import { DEFAULT_RULES, type RulesConfig } from './rules.js';
 import { cocktailAlcohol, matchesRecipe, scoreCocktail, type PointsBreakdown } from './scoring.js';
@@ -12,6 +12,8 @@ export type Action =
   | { type: 'SWAP'; cardId: string }
   | { type: 'SHOT'; cardIds: string[] }
   | { type: 'MATCH_DISCARD'; cardIds: string[] }
+  /** Pedir ingrediente: 3 cartas de una categoría por las que elegís de esa categoría (names) y el resto al azar. */
+  | { type: 'ASK_INGREDIENT'; cardIds: string[]; names: string[] }
   /** specialIds: cartas especiales de cóctel que se le suman (Semana difícil, Jarra grande). */
   | { type: 'MAKE_COCKTAIL'; cocktailCode: string; cardIds: string[]; targetId: string; specialIds?: string[] }
   | { type: 'WATER' }
@@ -57,6 +59,8 @@ export type GameEvent =
   | { type: 'TURN_ENDED'; playerId: string; discarded: Card[] }
   | { type: 'PENALTY_SHOT'; playerId: string; alcohol: number }
   | { type: 'MATCH_DISCARDED'; playerId: string; cards: Card[]; tableCard: Card }
+  /** names: lo que pidió (lo escucha toda la mesa); lo que le toca al azar llega en CARDS_DRAWN. */
+  | { type: 'INGREDIENT_ASKED'; playerId: string; cards: Card[]; names: string[]; sameColor: boolean }
   | { type: 'SHAME'; playerId: string; shame: number; cards: Card[]; tableCard: Card }
   | { type: 'PLAYER_SHAMED'; playerId: string }
   /** Se fue de la sala o lo sacó el anfitrión: queda afuera de la partida. */
@@ -81,7 +85,9 @@ export type ErrorCode =
   | 'SPECIAL_NOT_IN_HAND'
   | 'WRONG_SPECIAL'
   | 'SPECIAL_HAND_FULL'
-  | 'NO_SPECIALS_LEFT';
+  | 'NO_SPECIALS_LEFT'
+  | 'BAD_ASK'
+  | 'NOT_AVAILABLE';
 
 export type ActionResult =
   | { ok: true; state: GameState; events: GameEvent[] }
@@ -139,6 +145,7 @@ export function createGame({ players, seed, rules = DEFAULT_RULES }: NewGameOpti
     cocktailsThisTurn: 0,
     playedThisTurn: 0,
     matchDiscardsThisTurn: 0,
+    asksThisTurn: 0,
     usesThisTurn: freshUses(),
     pending: null,
     specialDeck,
@@ -236,6 +243,42 @@ export function applyAction(prev: GameState, playerId: string, action: Action): 
       state.discard.push(...cards);
       events.push({ type: 'MATCH_DISCARDED', playerId, cards, tableCard });
       draw(state, player, cards.length, events);
+      return ok(state, events);
+    }
+    case 'ASK_INGREDIENT': {
+      if (state.asksThisTurn >= r.asksPerTurn) return fail('LIMIT_REACHED');
+      const err = checkInHand(player, action.cardIds);
+      if (err) return fail(err);
+      if (action.cardIds.length !== r.askCards) return fail('BAD_ASK');
+      const given = action.cardIds.map((id) => player.hand.find((c) => c.id === id)!);
+      const category = given[0]!.category;
+      if (!given.every((c) => c.category === category)) return fail('BAD_ASK');
+      // Del mismo color elegís 2; si no, 1. Lo que falta para volver a tener 3 sale al azar.
+      const sameColor = given.every((c) => c.color === given[0]!.color);
+      const maxNames = sameColor ? r.askCards - 1 : 1;
+      if (action.names.length < 1 || action.names.length > maxNames) return fail('BAD_ASK');
+      if (!action.names.every((n) => CARD_DEFS.some((d) => d.name === n && d.category === category))) return fail('BAD_ASK');
+      // Se busca una copia en el mazo y, si no hay, en el descarte (menos la carta de la mesa).
+      const below = state.discard.slice(0, -1);
+      const picked: Card[] = [];
+      for (const name of action.names) {
+        const card =
+          [...state.deck].reverse().find((c) => c.name === name && !picked.includes(c)) ??
+          below.find((c) => c.name === name && !picked.includes(c));
+        if (!card) return fail('NOT_AVAILABLE');
+        picked.push(card);
+      }
+      state.deck = state.deck.filter((c) => !picked.includes(c));
+      const top = state.discard.pop();
+      state.discard = state.discard.filter((c) => !picked.includes(c));
+      if (top) state.discard.push(top);
+      takeFromHand(player, action.cardIds);
+      state.asksThisTurn++;
+      state.discard.push(...given);
+      player.hand.push(...picked);
+      events.push({ type: 'INGREDIENT_ASKED', playerId, cards: given, names: [...action.names], sameColor });
+      events.push({ type: 'CARDS_DRAWN', playerId, cardIds: picked.map((c) => c.id) });
+      draw(state, player, r.askCards - picked.length, events);
       return ok(state, events);
     }
     case 'MAKE_COCKTAIL': {
@@ -693,6 +736,7 @@ function startTurn(state: GameState, events: GameEvent[]) {
   state.cocktailsThisTurn = 0;
   state.playedThisTurn = 0;
   state.matchDiscardsThisTurn = 0;
+  state.asksThisTurn = 0;
   state.usesThisTurn = freshUses();
   const player = currentPlayer(state);
   // Choripán y conductor designado duran hasta que empieza tu próximo turno.

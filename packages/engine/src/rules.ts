@@ -35,6 +35,9 @@ export interface RulesConfig {
   shotsPerTurn: number;
   /** Descartes por coincidencia con la carta de la mesa, por turno. */
   matchDiscardsPerTurn: number;
+  /** Pedir ingrediente: cuántas cartas de una categoría se entregan, y cuántas veces por turno. */
+  askCards: number;
+  asksPerTurn: number;
   /** Papelones con los que perdés ("estás pasando vergüenza"). */
   shameLimit: number;
   /** 'uno': el cóctel le pega al rival que elegís. 'todos': le pega a todos los rivales. */
@@ -75,6 +78,8 @@ export const DEFAULT_RULES: RulesConfig = Object.freeze({
   cocktailTarget: 'uno',
   matchDiscardsPerTurn: 1,
   shameLimit: 3,
+  askCards: 3,
+  asksPerTurn: 1,
   waterCost: 2,
   waterAmount: 10,
   coffeeCost: 3,

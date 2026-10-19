@@ -125,6 +125,10 @@ export function describeEvent(e: GameEvent, name: (id: string) => string, me: st
       return say(e.playerId, 'Te tomaste un café.', 'se tomó un café.');
     case 'MATCH_DISCARDED':
       return say(e.playerId, `Descartaste ${e.cards.length} por coincidencia.`, `descartó ${e.cards.length} por coincidencia.`);
+    case 'INGREDIENT_ASKED': {
+      const what = e.names.join(' y ');
+      return say(e.playerId, `Cambiaste 3 cartas: pediste ${what} y el resto al azar.`, `cambió 3 cartas y pidió ${what}.`);
+    }
     case 'SHAME':
       return e.playerId === me ? '¡Papelón! Las cartas no coincidían.' : `¡Papelón de ${name(e.playerId)}! Las cartas no coincidían.`;
     case 'PENALTY_SHOT':

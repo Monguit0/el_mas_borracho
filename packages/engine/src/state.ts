@@ -68,6 +68,8 @@ export interface GameState {
   playedThisTurn: number;
   /** Descartes por coincidencia usados este turno. */
   matchDiscardsThisTurn: number;
+  /** Veces que pidió ingrediente este turno. */
+  asksThisTurn: number;
   /** Cuántas veces se usó cada cosa este turno: cada uso repetido cuesta el doble. */
   usesThisTurn: Record<PaidAction, number>;
   pending: PendingCocktail | null;
