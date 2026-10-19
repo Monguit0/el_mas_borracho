@@ -14,7 +14,7 @@ Juego de cartas online por turnos (2 a 6 jugadores, desde el celular). Las regla
 
 ## Estado
 
-Fase 1 (motor) y fase 2 (salas y servidor) hechas. Fase 3 (pantallas, estilo A "barra de madera" elegido por osky) en la rama `fase-3-pantallas`. Falta publicar en Render (fase 4). Repo: github.com/Monguit0/el_mas_borracho.
+Fases 1 a 3 hechas (motor, servidor y pantallas en estilo A "barra de madera", elegido por osky). Fase 4: `render.yaml` en main; osky crea el servicio en Render (Web Service, raíz del repo, Node 22) y cada subida a main se publica sola. Repo: github.com/Monguit0/el_mas_borracho.
 
 ## Estructura
 
@@ -55,5 +55,5 @@ Fase 1 (motor) y fase 2 (salas y servidor) hechas. Fase 3 (pantallas, estilo A "
 - Al borde (90%+) el símbolo no se ve (`symbol: null`, se muestra "?") y el color sigue en visión doble, decidido por osky el 19/10. En pantalla (pedido de osky): las cartas tiemblan más cuanto más alcohol (propuesta: leve desde mareado, fuerte al borde) y desde en pedo se ve una copia corrida de la mano (visión doble). Es solo del celular, el motor no cambia (`drunkIntensity` en `client/src/lib/game.ts`, clases `drunk-1..3`).
 - La carta de la mesa se muestra con la borrachera del que mira (`tableCard` en la vista). Se da vuelta una al empezar; al rearmar el mazo y al sacar a un jugador, la carta de la mesa no cambia.
 - Opción `cocktailTarget: 'todos'` (en prueba, no decidida; por defecto 'uno'): el cóctel le pega a todos los rivales, empezando por el elegido y en orden de mesa. Cada uno se defiende por separado (`pending.queue`); el que lanza cobra una sola vez. En la simulación, 6 jugadores bajan de ~180 a ~63 turnos; con 2 no cambia nada.
-- Celular: el cóctel se arma desde una hoja. Sobrio, tocás uno de los que salen y se eligen las cartas solas; mareado ves cuáles salen pero elegís las cartas; en pedo los nombres de los cócteles salen mezclados y elegís a ojo. El recetario se borronea en pedo.
+- Celular (pedido de osky el 19/10): arriba de la mano, "Podés armar" muestra solo los cócteles que salen con tu mano. Tocás uno, se elige solo con sus cartas, y la hoja pregunta a quién y si sumás una especial de cóctel. El recetario queda como guía. Interpretación: mareado la lista muestra los nombres pero las cartas las elegís vos; en pedo no hay lista y se elige a ojo (con los nombres mezclados). El recetario se borronea en pedo.
 - Servidor: una desconexión no pasa el turno. Si al que le tiran un cóctel no responde (o está desconectado), al vencer el tiempo se lo toma. Un jugador que se va en medio de la partida queda afuera; si era su turno pasa al siguiente, y si tenía un cóctel enfrente, el cóctel sigue con el próximo de la cola o se pierde (el que lo tiró no cobra).
