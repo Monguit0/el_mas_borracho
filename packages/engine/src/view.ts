@@ -1,7 +1,7 @@
 // Lo que ve cada jugador. El servidor nunca manda el estado entero: manda esto.
 // Lo que un jugador borracho no puede ver directamente no viaja, así no hay trampa posible mirando la página.
 
-import { COCKTAILS, COLORS, SYMBOLS, type Card, type CardSymbol, type Category, type Color, type CardNumber } from './cards.js';
+import { COCKTAILS, COLORS, type Card, type CardSymbol, type Category, type Color, type CardNumber } from './cards.js';
 import { actionCost, type GameEvent } from './engine.js';
 import { hashString, mulberry32, shuffleInPlace } from './rng.js';
 import { drunkLevel, type DrunkLevel } from './rules.js';
@@ -17,7 +17,8 @@ export interface HandCardView {
   art: 'clear' | 'blurred';
   /** Uno solo, o dos en visión doble (uno es el verdadero). */
   colors: Color[];
-  symbols: CardSymbol[];
+  /** null cuando ya no lo ves (al borde). */
+  symbol: CardSymbol | null;
   /** null cuando ya no lo ves. */
   number: CardNumber | null;
 }
@@ -190,14 +191,14 @@ function viewCard(state: GameState, viewer: PlayerState, card: Card, level: Drun
     name: card.name,
     art: level === 'sobrio' ? 'clear' : 'blurred',
     colors: [card.color],
-    symbols: [card.symbol],
+    symbol: card.symbol,
     number: card.number,
   };
   if (level === 'mareado' || level === 'en_pedo' || level === 'al_borde') v.name = scramble(card.name, rand);
   if (level === 'en_pedo' || level === 'al_borde') v.number = null;
   if (level === 'al_borde') {
     v.colors = doubleVision(card.color, COLORS, rand);
-    v.symbols = doubleVision(card.symbol, SYMBOLS, rand);
+    v.symbol = null;
   }
   return v;
 }
