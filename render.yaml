@@ -1,0 +1,20 @@
+# Render: un solo servicio web gratuito con el servidor y las pantallas del celular.
+# Es un servicio aparte del de Diez Mil.
+services:
+  - type: web
+    name: el-mas-borracho
+    runtime: node
+    plan: free
+    branch: main
+    # --include=dev porque Vite (dependencia de desarrollo) hace falta para armar el celular.
+    buildCommand: npm ci --include=dev && npm run build
+    startCommand: npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      # Render está detrás de un proxy: así los límites usan la IP real de cada jugador.
+      - key: TRUST_PROXY
+        value: "1"
+      - key: NODE_VERSION
+        value: "22"
