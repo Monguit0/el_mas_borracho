@@ -102,7 +102,7 @@ Como el color ya no dice la categoría, la categoría se lee en la banda de abaj
 
 - **6 copias:** Lima.
 - **4 copias:** Vodka, Tequila, Gin, Ron blanco, Campari, Vermut rosso, Licor de naranja, Jugo de naranja, Coca, Vaso highball, Vaso corto, Vaso común, Sifón.
-- **3 copias:** Whisky, Fernet, Pisco, Espumante, Sal, Copa margarita, Copa martini, Copa coupé, Copa flauta, Vaso de plástico, Vaso shot, Copa balón, Coctelera, Mortero, Rodaja de decoración, Agitar, Revolver.
+- **3 copias:** Whisky, Fernet, Pisco, Espumante, Sal, Copa margarita, Copa martini, Copa coupé, Copa flauta, Botella cortada, Vaso shot, Copa balón, Coctelera, Mortero, Rodaja de decoración, Agitar, Revolver.
 - **2 copias:** Cachaça, Taza de cobre, Copa de vino, Vaso tiki, Jarra, Porrón, Vaso de pinta, Bota de vidrio, Medidor, Cuchara de bar, Colador, Exprimidor, Pinza de hielo, Vaso mezclador, Licuadora, Soplete, Balde de hielo, Pajita, Sombrillita, Posavasos, Construir, Colar, Macerar, Escarchar, Licuar, Flotar en capas, Doble colado, Flamear, Ahumar, Fondo blanco, Frapé, Decorar, Con hielo, Completar.
 
 ### Borrador de nombres (propuesta)
@@ -125,7 +125,7 @@ Respeté los de tu imagen. El resto son ideas para cambiar.
 | Espumante | Vaso tiki | Balde de hielo | Fondo blanco |
 | Jugo de naranja | Jarra | Pajita | Frapé |
 | Lima | Porrón | Sombrillita | Decorar |
-| Coca | Vaso de plástico | Posavasos | Con hielo |
+| Coca | Botella cortada | Posavasos | Con hielo |
 | Sal | Bota de vidrio | Rodaja de decoración | Completar |
 | | **Vaso común** (comodín) | | |
 
@@ -143,7 +143,7 @@ Cada cóctel tiene nombre, receta, color, símbolo, **puntos base** y **% de alc
 | Código | Cóctel | Color y símbolo | Receta | Puntos base | Alcohol |
 | --- | --- | --- | --- | --- | --- |
 | C01 | Destornillador | Bordó ★ | Vodka + Jugo de naranja + Vaso highball + Construir | 4 | 15% |
-| C02 | Fernet con coca | Bordó ◇ | Fernet + Coca + Vaso de plástico (botella cortada, decidido por osky) | 3 | 15% |
+| C02 | Fernet con coca | Bordó ◇ | Fernet + Coca + Botella cortada (decidido por osky) | 3 | 15% |
 | C03 | Margarita | Bordó △ | Tequila + Lima + Licor de naranja + Copa margarita + Agitar | 5 | 20% |
 | C04 | Cuba libre | Verde ◇ | Ron blanco + Coca + Lima + Vaso highball | 4 | 15% |
 | C05 | Caipirinha | Verde ○ | Cachaça + Lima + Mortero + Vaso corto | 4 | 20% |
@@ -160,7 +160,7 @@ Cada cóctel tiene nombre, receta, color, símbolo, **puntos base** y **% de alc
 | C16 | Gin tonic | Verde ★ | Gin + Lima + Sifón + Copa balón | 4 | 15% |
 | C17 | Tiki de ron | Mostaza ○ | Ron blanco + Licor de naranja + Lima + Vaso tiki + Sombrillita | 5 | 20% |
 | C18 | Porrón de vermut | Bordó △ | Vermut rosso + Sifón + Porrón | 3 | 10% |
-| C19 | Trago de la previa | Verde ◇ | Vodka + Jugo de naranja + Vaso de plástico + Pajita | 4 | 15% |
+| C19 | Trago de la previa | Verde ◇ | Vodka + Jugo de naranja + Botella cortada + Pajita | 4 | 15% |
 | C20 | Whiscola en bota | Azul petróleo ★ | Whisky + Coca + Bota de vidrio + Fondo blanco | 4 | 25% |
 | C21 | Margarita frozen | Verde △ | Tequila + Lima + Licuadora + Copa margarita + Frapé | 5 | 20% |
 | C22 | Caipiroska | Azul petróleo ○ | Vodka + Lima + Mortero + Macerar + Vaso corto | 5 | 20% |

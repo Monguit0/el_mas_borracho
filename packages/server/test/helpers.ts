@@ -190,4 +190,4 @@ export function roomOf(t: TestServer, code: string) {
 }
 
 export const DESTORNILLADOR = ['Vodka', 'Jugo de naranja', 'Vaso highball', 'Construir'];
-export const FERNET = ['Fernet', 'Coca', 'Vaso de plástico'];
+export const FERNET = ['Fernet', 'Coca', 'Botella cortada'];

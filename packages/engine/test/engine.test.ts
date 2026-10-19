@@ -80,7 +80,7 @@ describe('puntos del cóctel', () => {
 
   it('número parejo suma 2', () => {
     const c = COCKTAIL_BY_CODE.get('C02')!;
-    const cards = [card('Fernet', 'verde', 'circulo', 3), card('Coca', 'verde', 'circulo', 3), card('Vaso de plástico', 'verde', 'circulo', 3)];
+    const cards = [card('Fernet', 'verde', 'circulo', 3), card('Coca', 'verde', 'circulo', 3), card('Botella cortada', 'verde', 'circulo', 3)];
     expect(scoreCocktail(c, cards, makeRules().bonus).sameNumber).toBe(2);
   });
 
@@ -190,7 +190,7 @@ describe('armar y lanzar', () => {
 });
 
 describe('cartas especiales', () => {
-  const fernet = () => [card('Fernet'), card('Coca'), card('Vaso de plástico')];
+  const fernet = () => [card('Fernet'), card('Coca'), card('Botella cortada')];
   const sid = (s: GameState, seat: number, i = 0) => s.players[seat]!.specials[i]!.id;
   /** p0 le tira un Destornillador (15%, 6 puntos) al elegido, con las especiales de cóctel que diga. */
   const throwWith = (opts: { specials?: SpecialCode[][]; players?: number; target?: string; use?: number[]; patch?: (s: GameState) => void }) => {
