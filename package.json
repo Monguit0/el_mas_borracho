@@ -1,0 +1,11 @@
+{
+  "name": "el-mas-borracho",
+  "private": true,
+  "workspaces": ["packages/*"],
+  "scripts": {
+    "test": "npm test -w @borracho/engine",
+    "typecheck": "npm run typecheck -w @borracho/engine",
+    "sim": "npm run sim -w @borracho/engine --",
+    "check": "npm run typecheck && npm test"
+  }
+}
