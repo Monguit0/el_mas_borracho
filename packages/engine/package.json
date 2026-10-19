@@ -10,9 +10,6 @@
     "sim": "tsx src/sim/cli.ts"
   },
   "devDependencies": {
-    "typescript": "^5.6.0",
-    "vitest": "^2.1.0",
-    "tsx": "^4.19.0",
     "@types/node": "^22.0.0"
   }
 }

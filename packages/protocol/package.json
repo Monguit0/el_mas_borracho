@@ -1,0 +1,15 @@
+{
+  "name": "@borracho/protocol",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Lo que viaja entre el servidor y el celular: vistas, eventos de Socket.IO, validación y errores en español.",
+  "type": "module",
+  "main": "src/index.ts",
+  "scripts": {
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@borracho/engine": "0.1.0"
+  }
+}

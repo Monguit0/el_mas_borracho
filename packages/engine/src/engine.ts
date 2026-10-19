@@ -6,7 +6,7 @@ import { mulberry32, shuffleInPlace } from './rng.js';
 import { DEFAULT_RULES, type RulesConfig } from './rules.js';
 import { matchesRecipe, scoreCocktail, type PointsBreakdown } from './scoring.js';
 import { printedSpecials, type SpecialCard, type SpecialCode } from './specials.js';
-import type { GameState, PaidAction, PlayerState } from './state.js';
+import type { GameState, OutReason, PaidAction, PlayerState } from './state.js';
 
 export type Action =
   | { type: 'SWAP'; cardId: string }
@@ -59,6 +59,8 @@ export type GameEvent =
   | { type: 'MATCH_DISCARDED'; playerId: string; cards: Card[]; tableCard: Card }
   | { type: 'SHAME'; playerId: string; shame: number; cards: Card[]; tableCard: Card }
   | { type: 'PLAYER_SHAMED'; playerId: string }
+  /** Se fue de la sala o lo sacó el anfitrión: queda afuera de la partida. */
+  | { type: 'PLAYER_LEFT'; playerId: string }
   | { type: 'GAME_WON'; playerId: string };
 
 export type ErrorCode =
@@ -349,6 +351,23 @@ export function applyAction(prev: GameState, playerId: string, action: Action): 
 }
 
 /**
+ * Un jugador se va en medio de la partida (o lo saca el anfitrión): queda afuera como si hubiera quebrado.
+ * Si era su turno, pasa al siguiente; si le estaban tirando un cóctel, sigue con el próximo de la cola.
+ */
+export function removePlayer(prev: GameState, playerId: string): ActionResult {
+  if (prev.phase === 'finished') return fail('GAME_OVER');
+  const state = structuredClone(prev);
+  const player = state.players.find((p) => p.id === playerId);
+  if (!player) return fail('UNKNOWN_PLAYER');
+  const events: GameEvent[] = [];
+  if (player.eliminated) return ok(state, events);
+  const wasTarget = state.phase === 'defense' && state.pending?.targetId === playerId;
+  const ended = eliminate(state, player, 'abandono', events);
+  if (!ended && wasTarget && state.pending) nextInQueue(state, events);
+  return ok(state, events);
+}
+
+/**
  * Lo que cuesta ahora la próxima vez que el jugador activo use algo: el precio base, y el doble por cada
  * vez que ya lo usó en este turno (1, 2, 4, 8…). Cambiar, agua, café y comprar especiales cuestan puntos; el shot, % de alcohol.
  */
@@ -478,16 +497,23 @@ function resolveDefense(state: GameState, action: RespondAction, events: GameEve
   if (!state.winnerId) checkBroke(state, sender, events);
   if (!state.winnerId && countered) checkBroke(state, countered, events);
   if (state.pending !== pending || state.winnerId) return null; // se cortó el turno o terminó la partida
+  nextInQueue(state, events);
+  return null;
+}
+
+/** Pasa el cóctel al próximo rival de la cola (cuando le pega a varios), o lo cierra. */
+function nextInQueue(state: GameState, events: GameEvent[]) {
+  const pending = state.pending!;
   const next = pending.queue.shift();
   if (next === undefined) {
     state.pending = null;
-    return null;
+    state.phase = 'main';
+    return;
   }
   pending.targetId = next;
   pending.senderId = pending.fromId;
   pending.alcohol = pending.baseAlcohol;
   offerToTarget(state, events);
-  return null;
 }
 
 /** Le ofrece responder al rival de turno del cóctel, o se lo toma directo si no tiene cartas especiales. */
@@ -496,15 +522,7 @@ function offerToTarget(state: GameState, events: GameEvent[]) {
   const target = state.players.find((p) => p.id === pending.targetId)!;
   if (target.eliminated) {
     // Quedó afuera por otra cosa en el medio: se saltea.
-    const next = pending.queue.shift();
-    if (next === undefined) {
-      state.pending = null;
-      return;
-    }
-    pending.targetId = next;
-    pending.senderId = pending.fromId;
-    pending.alcohol = pending.baseAlcohol;
-    offerToTarget(state, events);
+    nextInQueue(state, events);
     return;
   }
   // Se abre con cualquier carta especial en la mano, así nadie sabe si tiene una de respuesta.
@@ -619,7 +637,7 @@ function checkBroke(state: GameState, player: PlayerState, events: GameEvent[]):
 }
 
 /** Saca al jugador de la partida. Devuelve true si el turno del jugador activo ya se cerró por esto. */
-function eliminate(state: GameState, player: PlayerState, reason: 'quiebra' | 'verguenza', events: GameEvent[]): boolean {
+function eliminate(state: GameState, player: PlayerState, reason: OutReason, events: GameEvent[]): boolean {
   player.eliminated = true;
   player.outReason = reason;
   player.coffeeTurnsLeft = 0;
@@ -636,7 +654,9 @@ function eliminate(state: GameState, player: PlayerState, reason: 'quiebra' | 'v
   events.push(
     reason === 'quiebra'
       ? { type: 'PLAYER_BROKE', playerId: player.id, alcohol: player.alcohol }
-      : { type: 'PLAYER_SHAMED', playerId: player.id },
+      : reason === 'verguenza'
+        ? { type: 'PLAYER_SHAMED', playerId: player.id }
+        : { type: 'PLAYER_LEFT', playerId: player.id },
   );
 
   const alive = state.players.filter((p) => !p.eliminated);
