@@ -43,7 +43,7 @@ export function RecipeSheet({ game, onClose }: { game: GameView; onClose: () => 
         ))}
       </div>
       <p className="muted" style={{ margin: 0, fontSize: 13 }}>
-        Bonus: +1 por carta del color del cóctel, +1 por carta de su símbolo, +2 si todas tienen el mismo número. El Vaso común sirve de vaso en cualquier receta, pero resta 1.
+        Bonus: +1 por carta del color del cóctel, +1 por carta de su símbolo, +2 si todas tienen el mismo número. Cualquier vaso sirve: el de la receta suma 1; otro vaso (o el Vaso común) resta 1 y el cóctel pega 5% menos.
       </p>
     </Sheet>
   );

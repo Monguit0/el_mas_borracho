@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { CARD_DEFS, COCKTAILS, COLORS, NUMBERS, PRINTED_DECK, SYMBOLS, copiesFor } from '../src/cards.js';
 import { actionCost, applyAction, createGame, removePlayer, type Action, type ActionResult } from '../src/engine.js';
 import { makeRules } from '../src/rules.js';
-import { matchesRecipe, scoreCocktail } from '../src/scoring.js';
+import { bestCocktailOptions, cocktailAlcohol, matchesRecipe, scoreCocktail } from '../src/scoring.js';
 import { COCKTAIL_BY_CODE } from '../src/cards.js';
 import type { GameState } from '../src/state.js';
 import { card, filler, fixedGame } from './helpers.js';
@@ -67,7 +67,7 @@ describe('arranque', () => {
 });
 
 describe('puntos del cóctel', () => {
-  it('el ejemplo del documento da 8', () => {
+  it('el ejemplo del documento da 9 (8 más el vaso correcto)', () => {
     const c = COCKTAIL_BY_CODE.get('C01')!;
     const cards = [
       card('Vodka', 'bordo', 'estrella', 2),
@@ -75,12 +75,12 @@ describe('puntos del cóctel', () => {
       card('Vaso highball', 'bordo', 'triangulo', 1),
       card('Construir', 'mostaza', 'circulo', 3),
     ];
-    expect(scoreCocktail(c, cards, makeRules().bonus)).toEqual({ base: 4, color: 2, symbol: 2, sameNumber: 0, commonGlass: 0, total: 8 });
+    expect(scoreCocktail(c, cards, makeRules().bonus)).toEqual({ base: 4, color: 2, symbol: 2, sameNumber: 0, glass: 1, total: 9 });
   });
 
   it('número parejo suma 2', () => {
     const c = COCKTAIL_BY_CODE.get('C02')!;
-    const cards = [card('Fernet', 'verde', 'circulo', 3), card('Coca', 'verde', 'circulo', 3), card('Vaso de pinta', 'verde', 'circulo', 3)];
+    const cards = [card('Fernet', 'verde', 'circulo', 3), card('Coca', 'verde', 'circulo', 3), card('Botella cortada', 'verde', 'circulo', 3)];
     expect(scoreCocktail(c, cards, makeRules().bonus).sameNumber).toBe(2);
   });
 
@@ -101,10 +101,33 @@ describe('puntos del cóctel', () => {
     expect(matchesRecipe(c, [card('Vodka'), card('Vaso común'), card('Vaso highball'), card('Construir')])).toBe(false);
   });
 
+  it('cualquier vaso sirve: el de la receta suma 1, otro resta 1 y pega 5% menos', () => {
+    const c = COCKTAIL_BY_CODE.get('C01')!;
+    const rules = makeRules();
+    const other = [card('Vodka', 'azul', 'rombo', 0), card('Jugo de naranja', 'azul', 'rombo', 1), card('Jarra', 'azul', 'rombo', 2), card('Construir', 'azul', 'rombo', 3)];
+    expect(matchesRecipe(c, other, 'exacta')).toBe(false);
+    expect(matchesRecipe(c, other, 'vaso')).toBe(true);
+    expect(scoreCocktail(c, other, rules.bonus)).toMatchObject({ glass: -1, total: 3 });
+    expect(cocktailAlcohol(c, other, rules)).toBe(c.alcohol - 5);
+    const right = destornillador();
+    expect(scoreCocktail(c, right, rules.bonus).glass).toBe(1);
+    expect(cocktailAlcohol(c, right, rules)).toBe(c.alcohol);
+    // Los ingredientes, utensilios y técnicas siguen siendo los de la receta.
+    expect(matchesRecipe(c, [card('Vodka'), card('Jugo de naranja'), card('Jarra'), card('Flamear')], 'vaso')).toBe(false);
+    expect(matchesRecipe(c, [card('Vodka'), card('Jarra'), card('Vaso highball'), card('Construir')], 'vaso')).toBe(false);
+  });
+
+  it('con otro vaso, la mejor opción prefiere el de la receta si lo tenés', () => {
+    const hand = [card('Vodka'), card('Jugo de naranja'), card('Jarra'), card('Vaso highball'), card('Construir')];
+    const opt = bestCocktailOptions(hand, [COCKTAIL_BY_CODE.get('C01')!], makeRules().bonus, 'vaso')[0]!;
+    expect(opt.wrongGlass).toBe(false);
+    expect(opt.cardIds).toContain(hand[3]!.id);
+  });
+
   it('un cóctel nunca vale menos de 0', () => {
     const c = COCKTAIL_BY_CODE.get('C01')!;
     const cards = [card('Vodka', 'azul', 'rombo', 0), card('Jugo de naranja', 'azul', 'rombo', 1), card('Vaso común', 'azul', 'rombo', 2), card('Construir', 'azul', 'rombo', 3)];
-    expect(scoreCocktail(c, cards, makeRules({ bonus: { commonGlass: -10 } }).bonus).total).toBe(0);
+    expect(scoreCocktail(c, cards, makeRules({ bonus: { wrongGlass: -10 } }).bonus).total).toBe(0);
   });
 
   it('receta flexible: vaso y técnica pueden ser cualquiera de su categoría', () => {
@@ -123,7 +146,7 @@ describe('armar y lanzar', () => {
     const res = act(s, 'p0', { type: 'MAKE_COCKTAIL', cocktailCode: 'C01', cardIds: hand.slice(0, 4).map((c) => c.id), targetId: 'p1' });
     const [me, rival] = res.state.players;
     expect(rival!.alcohol).toBe(15);
-    expect(me!.points).toBe(6); // base 4 + número parejo 2 (todas verdes ○1: no combinan con bordó ★)
+    expect(me!.points).toBe(7); // base 4 + número parejo 2 + vaso correcto 1 (todas verdes ○1: no combinan con bordó ★)
     expect(me!.hand).toHaveLength(9);
     expect(res.state.discard).toHaveLength(4);
     expect(res.events.map((e) => e.type)).toContain('COCKTAIL_DRUNK');
@@ -167,7 +190,7 @@ describe('armar y lanzar', () => {
 });
 
 describe('cartas especiales', () => {
-  const fernet = () => [card('Fernet'), card('Coca'), card('Vaso de pinta')];
+  const fernet = () => [card('Fernet'), card('Coca'), card('Botella cortada')];
   const sid = (s: GameState, seat: number, i = 0) => s.players[seat]!.specials[i]!.id;
   /** p0 le tira un Destornillador (15%, 6 puntos) al elegido, con las especiales de cóctel que diga. */
   const throwWith = (opts: { specials?: SpecialCode[][]; players?: number; target?: string; use?: number[]; patch?: (s: GameState) => void }) => {
@@ -234,7 +257,7 @@ describe('cartas especiales', () => {
     expect(err(applyAction(s, 'p1', { type: 'RESPOND', choice: 'special', specialId: sid(s, 1) }))).toBe('WRONG_SPECIAL');
     const res = act(s, 'p1', { type: 'RESPOND', choice: 'drink' });
     expect(res.state.players[1]!.alcohol).toBe(15);
-    expect(res.state.players[0]!.points).toBe(6);
+    expect(res.state.players[0]!.points).toBe(7);
   });
 
   it('"No, gracias": nadie lo toma y nadie cobra', () => {
@@ -257,7 +280,7 @@ describe('cartas especiales', () => {
     const s = throwWith({ specials: [[], ['vos_tambien']] }).state;
     const res = act(s, 'p1', { type: 'RESPOND', choice: 'special', specialId: sid(s, 1) });
     expect(res.state.players.map((p) => p.alcohol)).toEqual([15, 15]);
-    expect(res.state.players[0]!.points).toBe(6);
+    expect(res.state.players[0]!.points).toBe(7);
   });
 
   it('"Doblalo": pasa al siguiente con el doble, y ese también puede responder', () => {
@@ -276,7 +299,7 @@ describe('cartas especiales', () => {
     const s = throwWith({ players: 3, specials: [[], ['doblalo'], []] }).state;
     const res = act(s, 'p1', { type: 'RESPOND', choice: 'special', specialId: sid(s, 1) });
     expect(res.state.players.map((p) => p.alcohol)).toEqual([0, 0, 30]);
-    expect(res.state.players[0]!.points).toBe(6);
+    expect(res.state.players[0]!.points).toBe(7);
   });
 
   it('"¡Probá el mío!": te lo tomás y le tirás uno tuyo, sin respuesta', () => {
@@ -290,7 +313,7 @@ describe('cartas especiales', () => {
     });
     expect(res.state.phase).toBe('main');
     expect(res.state.players.map((p) => p.alcohol)).toEqual([15, 15]);
-    expect(res.state.players.map((p) => p.points)).toEqual([6, 5]);
+    expect(res.state.players.map((p) => p.points)).toEqual([7, 6]);
     expect(res.state.players[1]!.hand).toHaveLength(8);
     expect(res.state.players[0]!.specials).toHaveLength(1); // no pudo usar su "No, gracias"
   });
@@ -315,7 +338,7 @@ describe('cartas especiales', () => {
     expect(res.state.phase).toBe('defense');
     const st = act(res.state, 'p1', { type: 'RESPOND', choice: 'special', specialId: sid(res.state, 1) }).state;
     expect(st.players.map((p) => p.alcohol)).toEqual([0, 0, 20, 20]);
-    expect(st.players[0]!.points).toBe(6);
+    expect(st.players[0]!.points).toBe(7);
   });
 
   it('una carta de turno no sirve para el cóctel, ni dos iguales', () => {

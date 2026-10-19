@@ -8,12 +8,17 @@ export interface BonusConfig {
   perMatchingSymbol: number;
   /** Si todas las cartas de la receta tienen el mismo número. */
   allSameNumber: number;
-  /** Por cada Vaso común usado (negativo: resta). */
-  commonGlass: number;
+  /** Por usar el vaso que pide la receta. */
+  rightGlass: number;
+  /** Por usar otro vaso o el Vaso común (negativo: resta). */
+  wrongGlass: number;
 }
 
-/** 'exacta': cada carta de la receta por nombre. 'flexible': ingredientes por nombre, el resto cualquiera de su categoría. */
-export type RecipeMode = 'exacta' | 'flexible';
+/**
+ * 'exacta': cada carta de la receta por nombre. 'vaso': cualquier vaso sirve (el de la receta suma, otro resta).
+ * 'flexible': ingredientes por nombre, el resto cualquiera de su categoría.
+ */
+export type RecipeMode = 'exacta' | 'vaso' | 'flexible';
 
 export interface RulesConfig {
   recipeMode: RecipeMode;
@@ -48,13 +53,15 @@ export interface RulesConfig {
   specialHandMax: number;
   /** Cartas especiales con las que arranca cada uno. */
   specialStart: number;
+  /** Lo que pega de menos un cóctel servido en otro vaso. */
+  wrongGlassAlcohol: number;
   /** Lo que suma "Semana difícil" al cóctel. */
   hardWeekAlcohol: number;
   bonus: BonusConfig;
 }
 
 export const DEFAULT_RULES: RulesConfig = Object.freeze({
-  recipeMode: 'exacta',
+  recipeMode: 'vaso',
   handSize: 8,
   drawPerTurn: 3,
   barMax: 100,
@@ -76,8 +83,9 @@ export const DEFAULT_RULES: RulesConfig = Object.freeze({
   specialCost: 4,
   specialHandMax: 3,
   specialStart: 2,
+  wrongGlassAlcohol: 5,
   hardWeekAlcohol: 15,
-  bonus: Object.freeze({ perMatchingColor: 1, perMatchingSymbol: 1, allSameNumber: 2, commonGlass: -1 }),
+  bonus: Object.freeze({ perMatchingColor: 1, perMatchingSymbol: 1, allSameNumber: 2, rightGlass: 1, wrongGlass: -1 }),
 }) as RulesConfig;
 
 export function makeRules(overrides: Partial<Omit<RulesConfig, 'bonus'>> & { bonus?: Partial<BonusConfig> } = {}): RulesConfig {

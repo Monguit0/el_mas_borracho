@@ -23,7 +23,7 @@ describe('recetario', () => {
       if (book.mode !== 'completo') return;
       expect(book.canMake).toHaveLength(1);
       expect(book.canMake[0]!.cocktailCode).toBe('C01');
-      expect(book.canMake[0]!.points.total).toBe(8);
+      expect(book.canMake[0]!.points.total).toBe(9);
       const ids = resolveHandles(s, 'p0', book.canMake[0]!.handles)!;
       expect(ids.map((id) => s.players[0]!.hand.find((c) => c.id === id)!.name).sort()).toEqual(
         ['Construir', 'Jugo de naranja', 'Vaso highball', 'Vodka'],

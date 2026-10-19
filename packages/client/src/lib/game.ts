@@ -47,6 +47,12 @@ export function drunkIntensity(level: DrunkLevel): 0 | 1 | 2 | 3 {
 /** El tamaño de la mano al cerrar el turno: lo que sobra se tira. Las opciones de la sala no lo cambian. */
 export const HAND_SIZE = DEFAULT_RULES.handSize;
 
+/** Cuánto pega un cóctel según el vaso: con otro vaso pega menos. */
+export function optionAlcohol(code: string, wrongGlass?: boolean): number {
+  const c = COCKTAIL_BY_CODE.get(code)!;
+  return wrongGlass ? Math.max(0, c.alcohol - DEFAULT_RULES.wrongGlassAlcohol) : c.alcohol;
+}
+
 export const COCKTAIL_BY_CODE = new Map(COCKTAILS.map((c) => [c.code, c]));
 
 export function cocktailName(code: string): string {

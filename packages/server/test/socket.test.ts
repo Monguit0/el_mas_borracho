@@ -193,7 +193,7 @@ describe('partida', () => {
     const drunk = await until(rival, (r) => r.game?.phase === 'main');
     expect(drunk.game!.you.alcohol).toBe(15);
     expect(drunk.game!.defenseEndsAt).toBeNull();
-    expect(drunk.game!.players.find((p) => p.id === current.id)!.points).toBe(6);
+    expect(drunk.game!.players.find((p) => p.id === current.id)!.points).toBe(7);
   });
 
   it('¡Probá el mío! viaja con handles y le devuelve un cóctel', async () => {
@@ -220,7 +220,7 @@ describe('partida', () => {
     );
     const after = await until(current, (r) => r.game?.phase === 'main' && r.game.you.alcohol > 0);
     expect(after.game!.players.map((p) => p.alcohol)).toEqual([15, 15]);
-    expect(after.game!.you.points).toBe(6);
+    expect(after.game!.you.points).toBe(7);
   });
 
   it('un handle viejo o inventado no sirve', async () => {

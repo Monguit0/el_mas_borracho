@@ -22,7 +22,7 @@ Esta es la sección "Lo que tenés que definir del juego nuevo" del spec base de
 **Decidido por osky (18/10, mazo):**
 
 - Más recetas, para que sirvan todas las cartas.
-- Vaso común: una carta de cristalería que sirve de vaso para cualquier cóctel, pero resta 1 punto.
+- Vasos (decidido por osky el 19/10): cualquier vaso sirve para armar cualquier cóctel. El vaso de la receta suma 1 punto; otro vaso (o el Vaso común) resta 1 punto y el cóctel pega 5% menos. Ingredientes, utensilios y técnicas siguen siendo los de la receta.
 - Cada cóctel pega 5% más.
 - El mazo inicial lo arma Claude con muchas posibilidades, y después se le van sumando cartas.
 
@@ -102,8 +102,8 @@ Como el color ya no dice la categoría, la categoría se lee en la banda de abaj
 
 - **6 copias:** Lima.
 - **4 copias:** Vodka, Tequila, Gin, Ron blanco, Campari, Vermut rosso, Licor de naranja, Jugo de naranja, Coca, Vaso highball, Vaso corto, Vaso común, Sifón.
-- **3 copias:** Whisky, Fernet, Pisco, Espumante, Sal, Copa margarita, Copa martini, Copa coupé, Copa flauta, Vaso de pinta, Vaso shot, Copa balón, Coctelera, Mortero, Rodaja de decoración, Agitar, Revolver.
-- **2 copias:** Cachaça, Taza de cobre, Copa de vino, Vaso tiki, Jarra, Porrón, Vaso de plástico, Bota de vidrio, Medidor, Cuchara de bar, Colador, Exprimidor, Pinza de hielo, Vaso mezclador, Licuadora, Soplete, Balde de hielo, Pajita, Sombrillita, Posavasos, Construir, Colar, Macerar, Escarchar, Licuar, Flotar en capas, Doble colado, Flamear, Ahumar, Fondo blanco, Frapé, Decorar, Con hielo, Completar.
+- **3 copias:** Whisky, Fernet, Pisco, Espumante, Sal, Copa margarita, Copa martini, Copa coupé, Copa flauta, Botella cortada, Vaso shot, Copa balón, Coctelera, Mortero, Rodaja de decoración, Agitar, Revolver.
+- **2 copias:** Cachaça, Taza de cobre, Copa de vino, Vaso tiki, Jarra, Porrón, Vaso de pinta, Bota de vidrio, Medidor, Cuchara de bar, Colador, Exprimidor, Pinza de hielo, Vaso mezclador, Licuadora, Soplete, Balde de hielo, Pajita, Sombrillita, Posavasos, Construir, Colar, Macerar, Escarchar, Licuar, Flotar en capas, Doble colado, Flamear, Ahumar, Fondo blanco, Frapé, Decorar, Con hielo, Completar.
 
 ### Borrador de nombres (propuesta)
 
@@ -125,7 +125,7 @@ Respeté los de tu imagen. El resto son ideas para cambiar.
 | Espumante | Vaso tiki | Balde de hielo | Fondo blanco |
 | Jugo de naranja | Jarra | Pajita | Frapé |
 | Lima | Porrón | Sombrillita | Decorar |
-| Coca | Vaso de plástico | Posavasos | Con hielo |
+| Coca | Botella cortada | Posavasos | Con hielo |
 | Sal | Bota de vidrio | Rodaja de decoración | Completar |
 | | **Vaso común** (comodín) | | |
 
@@ -134,7 +134,7 @@ Respeté los de tu imagen. El resto son ideas para cambiar.
 Cada cóctel tiene nombre, receta, color, símbolo, **puntos base** y **% de alcohol**.
 
 - **Recetas de 3 a 5 cartas (propuesta).** Con una mano de 8, una receta de 8 como la Margarita de la imagen no se puede armar nunca, así que la achiqué a 5.
-- **Todas las recetas llevan justo un vaso.** El Vaso común puede ocupar ese lugar en cualquier receta.
+- **Todas las recetas llevan justo un vaso.** Cualquier vaso puede ocupar ese lugar: el de la receta suma 1, otro resta 1 y pega 5% menos.
 - **El % de alcohol es fijo** para cada cóctel, entre 10% y 25% (ya con el 5% extra). Lo que cambia según las cartas son los puntos, no el alcohol **(propuesta)**.
 - **El color y el símbolo del cóctel son fijos** y marcan qué cartas "le combinan" para los bonus. En tu imagen los dos cócteles eran bordó; propongo variar los colores para que no convenga juntar siempre lo mismo.
 
@@ -143,7 +143,7 @@ Cada cóctel tiene nombre, receta, color, símbolo, **puntos base** y **% de alc
 | Código | Cóctel | Color y símbolo | Receta | Puntos base | Alcohol |
 | --- | --- | --- | --- | --- | --- |
 | C01 | Destornillador | Bordó ★ | Vodka + Jugo de naranja + Vaso highball + Construir | 4 | 15% |
-| C02 | Fernet con coca | Bordó ◇ | Fernet + Coca + Vaso de pinta | 3 | 15% |
+| C02 | Fernet con coca | Bordó ◇ | Fernet + Coca + Botella cortada (decidido por osky) | 3 | 15% |
 | C03 | Margarita | Bordó △ | Tequila + Lima + Licor de naranja + Copa margarita + Agitar | 5 | 20% |
 | C04 | Cuba libre | Verde ◇ | Ron blanco + Coca + Lima + Vaso highball | 4 | 15% |
 | C05 | Caipirinha | Verde ○ | Cachaça + Lima + Mortero + Vaso corto | 4 | 20% |
@@ -160,7 +160,7 @@ Cada cóctel tiene nombre, receta, color, símbolo, **puntos base** y **% de alc
 | C16 | Gin tonic | Verde ★ | Gin + Lima + Sifón + Copa balón | 4 | 15% |
 | C17 | Tiki de ron | Mostaza ○ | Ron blanco + Licor de naranja + Lima + Vaso tiki + Sombrillita | 5 | 20% |
 | C18 | Porrón de vermut | Bordó △ | Vermut rosso + Sifón + Porrón | 3 | 10% |
-| C19 | Trago de la previa | Verde ◇ | Vodka + Jugo de naranja + Vaso de plástico + Pajita | 4 | 15% |
+| C19 | Trago de la previa | Verde ◇ | Vodka + Jugo de naranja + Botella cortada + Pajita | 4 | 15% |
 | C20 | Whiscola en bota | Azul petróleo ★ | Whisky + Coca + Bota de vidrio + Fondo blanco | 4 | 25% |
 | C21 | Margarita frozen | Verde △ | Tequila + Lima + Licuadora + Copa margarita + Frapé | 5 | 20% |
 | C22 | Caipiroska | Azul petróleo ○ | Vodka + Lima + Mortero + Macerar + Vaso corto | 5 | 20% |
@@ -189,11 +189,12 @@ Vos dijiste que los bonus los vas a poner después. Para que el motor quede list
 | Color a juego | Por cada carta del mismo color que el cóctel | +1 |
 | Símbolo a juego | Por cada carta del mismo símbolo que el cóctel | +1 |
 | Número parejo | Si todas las cartas de la receta tienen el mismo número | +2 |
-| Vaso común | Si usaste el Vaso común en vez del vaso de la receta | −1 (decidido por osky) |
+| Vaso de la receta | Si usaste el vaso que pide la receta | +1 (decidido por osky) |
+| Otro vaso | Si usaste otro vaso o el Vaso común (además el cóctel pega 5% menos) | −1 (decidido por osky) |
 
 Un cóctel nunca vale menos de 0 puntos.
 
-**Ejemplo.** Destornillador (bordó ★, base 4, 15% de alcohol) con Vodka bordó ★2, Jugo de naranja verde ★0, Vaso highball bordó △1 y Construir mostaza ○3. Color a juego: 2 cartas bordó, +2. Símbolo a juego: 2 cartas ★, +2. Número parejo: no. Total: 4 + 2 + 2 = **8 puntos**.
+**Ejemplo.** Destornillador (bordó ★, base 4, 15% de alcohol) con Vodka bordó ★2, Jugo de naranja verde ★0, Vaso highball bordó △1 y Construir mostaza ○3. Color a juego: 2 cartas bordó, +2. Símbolo a juego: 2 cartas ★, +2. Número parejo: no. Vaso de la receta: +1. Total: 4 + 2 + 2 + 1 = **9 puntos**. Con una Jarra en vez del Vaso highball: 4 + 2 + 2 − 1 = 7 puntos, y pega 10% en vez de 15%.
 
 ## Turno paso a paso
 

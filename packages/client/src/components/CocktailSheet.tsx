@@ -1,7 +1,7 @@
 import { useState, type CSSProperties } from 'react';
 import { COCKTAILS } from '@borracho/engine';
 import type { GameView, WireAction } from '@borracho/protocol';
-import { COCKTAIL_BY_CODE, COLOR_HEX, KIND_COLOR, scrambleText, targetsFor } from '../lib/game';
+import { COCKTAIL_BY_CODE, COLOR_HEX, KIND_COLOR, optionAlcohol, scrambleText, targetsFor } from '../lib/game';
 import { Sheet } from './Sheet';
 
 interface Props {
@@ -60,7 +60,8 @@ export function CocktailSheet({ game, selected, initialCode = null, onSelect, on
                     <span className="main">
                       <span className="title">{c.name}</span>
                       <span className="sub">
-                        {o.points.total} pts · pega {c.alcohol}%
+                        {o.points.total} pts · pega {optionAlcohol(o.cocktailCode, o.wrongGlass)}%
+                        {o.wrongGlass ? ' · en otro vaso' : ''}
                       </span>
                     </span>
                   </button>
@@ -128,8 +129,13 @@ export function CocktailSheet({ game, selected, initialCode = null, onSelect, on
           <span className="label">Armaste</span>
           <h2>{shownName}</h2>
           <span className="muted" style={{ fontSize: 14 }}>
-            {option ? `${option.points.total} pts · ` : ''}pega {cocktail.alcohol}%
+            {option ? `${option.points.total} pts · ` : ''}pega {optionAlcohol(code, option?.wrongGlass)}%
           </span>
+          {option?.wrongGlass ? (
+            <span className="muted" style={{ display: 'block', fontSize: 13 }}>
+              No tenés el vaso de la receta: va en otro, −1 punto y pega 5% menos.
+            </span>
+          ) : null}
         </div>
         <button type="button" className="btn btn-sm" style={{ background: 'transparent', color: 'var(--bordo)', border: '1px solid rgba(0,0,0,.15)' }} onClick={() => setCode(null)}>
           Cambiar
