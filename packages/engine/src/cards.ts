@@ -91,7 +91,7 @@ export const COCKTAILS: CocktailDef[] = [
   { code: 'C01', name: 'Destornillador', color: 'bordo', symbol: 'estrella', basePoints: 4, alcohol: 15,
     recipe: ['Vodka', 'Jugo de naranja', 'Vaso highball', 'Construir'] },
   { code: 'C02', name: 'Fernet con coca', color: 'bordo', symbol: 'rombo', basePoints: 3, alcohol: 15,
-    recipe: ['Fernet', 'Coca', 'Vaso de pinta'] },
+    recipe: ['Fernet', 'Coca', 'Vaso de plástico'] },
   { code: 'C03', name: 'Margarita', color: 'bordo', symbol: 'triangulo', basePoints: 5, alcohol: 20,
     recipe: ['Tequila', 'Lima', 'Licor de naranja', 'Copa margarita', 'Agitar'] },
   { code: 'C04', name: 'Cuba libre', color: 'verde', symbol: 'rombo', basePoints: 4, alcohol: 15,

@@ -102,8 +102,8 @@ Como el color ya no dice la categoría, la categoría se lee en la banda de abaj
 
 - **6 copias:** Lima.
 - **4 copias:** Vodka, Tequila, Gin, Ron blanco, Campari, Vermut rosso, Licor de naranja, Jugo de naranja, Coca, Vaso highball, Vaso corto, Vaso común, Sifón.
-- **3 copias:** Whisky, Fernet, Pisco, Espumante, Sal, Copa margarita, Copa martini, Copa coupé, Copa flauta, Vaso de pinta, Vaso shot, Copa balón, Coctelera, Mortero, Rodaja de decoración, Agitar, Revolver.
-- **2 copias:** Cachaça, Taza de cobre, Copa de vino, Vaso tiki, Jarra, Porrón, Vaso de plástico, Bota de vidrio, Medidor, Cuchara de bar, Colador, Exprimidor, Pinza de hielo, Vaso mezclador, Licuadora, Soplete, Balde de hielo, Pajita, Sombrillita, Posavasos, Construir, Colar, Macerar, Escarchar, Licuar, Flotar en capas, Doble colado, Flamear, Ahumar, Fondo blanco, Frapé, Decorar, Con hielo, Completar.
+- **3 copias:** Whisky, Fernet, Pisco, Espumante, Sal, Copa margarita, Copa martini, Copa coupé, Copa flauta, Vaso de plástico, Vaso shot, Copa balón, Coctelera, Mortero, Rodaja de decoración, Agitar, Revolver.
+- **2 copias:** Cachaça, Taza de cobre, Copa de vino, Vaso tiki, Jarra, Porrón, Vaso de pinta, Bota de vidrio, Medidor, Cuchara de bar, Colador, Exprimidor, Pinza de hielo, Vaso mezclador, Licuadora, Soplete, Balde de hielo, Pajita, Sombrillita, Posavasos, Construir, Colar, Macerar, Escarchar, Licuar, Flotar en capas, Doble colado, Flamear, Ahumar, Fondo blanco, Frapé, Decorar, Con hielo, Completar.
 
 ### Borrador de nombres (propuesta)
 
@@ -143,7 +143,7 @@ Cada cóctel tiene nombre, receta, color, símbolo, **puntos base** y **% de alc
 | Código | Cóctel | Color y símbolo | Receta | Puntos base | Alcohol |
 | --- | --- | --- | --- | --- | --- |
 | C01 | Destornillador | Bordó ★ | Vodka + Jugo de naranja + Vaso highball + Construir | 4 | 15% |
-| C02 | Fernet con coca | Bordó ◇ | Fernet + Coca + Vaso de pinta | 3 | 15% |
+| C02 | Fernet con coca | Bordó ◇ | Fernet + Coca + Vaso de plástico (botella cortada, decidido por osky) | 3 | 15% |
 | C03 | Margarita | Bordó △ | Tequila + Lima + Licor de naranja + Copa margarita + Agitar | 5 | 20% |
 | C04 | Cuba libre | Verde ◇ | Ron blanco + Coca + Lima + Vaso highball | 4 | 15% |
 | C05 | Caipirinha | Verde ○ | Cachaça + Lima + Mortero + Vaso corto | 4 | 20% |
