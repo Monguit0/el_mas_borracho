@@ -19,6 +19,7 @@ import {
   optionAlcohol,
 } from '../lib/game';
 import { Card } from '../components/Card';
+import { cocktailArt } from '../lib/art';
 import { CocktailSheet } from '../components/CocktailSheet';
 import { Countdown, ResponseSheet } from '../components/ResponseSheet';
 import { RecipeSheet } from '../components/RecipeSheet';
@@ -314,12 +315,16 @@ export function GameScreen({ client, room, game, connection }: Props) {
           <div className="quick-row">
             {quick.map((o) => {
               const c = COCKTAIL_BY_CODE.get(o.cocktailCode)!;
+              const pic = cocktailArt(o.cocktailCode);
               return (
-                <button key={o.cocktailCode} type="button" className="quick-btn" style={{ '--k': COLOR_HEX[c.color] } as CSSProperties} onClick={() => openCocktail(o.cocktailCode)}>
-                  <span className="n">{c.name}</span>
-                  <span className="p">
-                    {o.points !== undefined ? `${o.points} pts · ` : ''}
-                    {optionAlcohol(o.cocktailCode, o.wrongGlass)}%{o.wrongGlass ? ' · otro vaso' : ''}
+                <button key={o.cocktailCode} type="button" className={`quick-btn${pic ? ' with-pic' : ''}`} style={{ '--k': COLOR_HEX[c.color] } as CSSProperties} onClick={() => openCocktail(o.cocktailCode)}>
+                  {pic ? <img className="thumb" src={pic} alt="" /> : null}
+                  <span>
+                    <span className="n" style={{ display: 'block' }}>{c.name}</span>
+                    <span className="p">
+                      {o.points !== undefined ? `${o.points} pts · ` : ''}
+                      {optionAlcohol(o.cocktailCode, o.wrongGlass)}%{o.wrongGlass ? ' · otro vaso' : ''}
+                    </span>
                   </span>
                 </button>
               );

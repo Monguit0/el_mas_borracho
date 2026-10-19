@@ -1,6 +1,7 @@
 import type { CSSProperties } from 'react';
 import type { HandCardView } from '@borracho/engine';
 import { CATEGORY_LABEL, COLOR_HEX } from '../lib/game';
+import { cardArt } from '../lib/art';
 import { ArtIcon, SymbolIcon } from './icons';
 
 type CardView = Omit<HandCardView, 'handle'>;
@@ -22,6 +23,7 @@ export function Card({ card, selected = false, small = false, onClick, shakeInde
   const [first, second] = card.colors;
   const color = COLOR_HEX[first ?? 'bordo'];
   const style = { '--c': color, ...(second ? { '--c2': COLOR_HEX[second] } : {}) } as CSSProperties;
+  const pic = cardArt(card.name);
   const label = `${card.name}, ${CATEGORY_LABEL[card.category]}, ${card.symbol ?? 'símbolo desconocido'}, ${card.number ?? 'número desconocido'}`;
   const body = (
     <>
@@ -31,9 +33,13 @@ export function Card({ card, selected = false, small = false, onClick, shakeInde
         <span>{card.number ?? '?'}</span>
       </span>
       <span className="art">
-        <span className={`disc${card.art === 'blurred' ? ' blurred' : ''}`}>
-          <ArtIcon category={card.category} size={small ? 22 : 26} />
-        </span>
+        {pic ? (
+          <img className={`pic${card.art === 'blurred' ? ' blurred' : ''}`} src={pic} alt="" draggable={false} />
+        ) : (
+          <span className={`disc${card.art === 'blurred' ? ' blurred' : ''}`}>
+            <ArtIcon category={card.category} size={small ? 22 : 26} />
+          </span>
+        )}
       </span>
       <span className="name">{card.name}</span>
       <span className="band">{CATEGORY_LABEL[card.category].toUpperCase()}</span>

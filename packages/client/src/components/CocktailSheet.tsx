@@ -2,6 +2,7 @@ import { useState, type CSSProperties } from 'react';
 import { COCKTAILS } from '@borracho/engine';
 import type { GameView, WireAction } from '@borracho/protocol';
 import { COCKTAIL_BY_CODE, COLOR_HEX, KIND_COLOR, optionAlcohol, scrambleText, targetsFor } from '../lib/game';
+import { cocktailArt } from '../lib/art';
 import { Sheet } from './Sheet';
 
 interface Props {
@@ -123,6 +124,7 @@ export function CocktailSheet({ game, selected, initialCode = null, onSelect, on
 
   return (
     <Sheet label="Lanzar cóctel" onClose={onClose}>
+      {book.mode !== 'ilegible' && cocktailArt(code) ? <img className="cocktail-pic" src={cocktailArt(code)} alt="" /> : null}
       <div className="row" style={{ alignItems: 'flex-start' }}>
         <span style={{ width: 10, alignSelf: 'stretch', borderRadius: 3, background: COLOR_HEX[cocktail.color] }} />
         <div className="spacer">

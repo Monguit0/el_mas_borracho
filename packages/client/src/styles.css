@@ -690,6 +690,47 @@ button:disabled {
   justify-content: center;
 }
 
+.card .art:has(.pic) {
+  position: relative;
+  min-height: 0;
+}
+
+.card .pic {
+  position: absolute;
+  inset: 2px 4px;
+  width: calc(100% - 8px);
+  height: calc(100% - 4px);
+  object-fit: cover;
+  border-radius: 4px;
+  border: 1px solid var(--c, var(--bordo));
+}
+
+.card .pic.blurred {
+  filter: blur(2px);
+}
+
+.quick-btn.with-pic {
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
+}
+
+.quick-btn .thumb {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  object-fit: cover;
+  flex: none;
+}
+
+.cocktail-pic {
+  width: 150px;
+  height: 150px;
+  align-self: center;
+  object-fit: cover;
+  border-radius: 12px;
+}
+
 .card .disc.blurred {
   filter: blur(2.5px);
 }
