@@ -253,9 +253,9 @@ En cada nivel perdés un dato de tus cartas. Como color, símbolo y número dan 
 | Alegre | 25–49% | Los dibujos se ven borrosos y la mano se balancea un poco |
 | Mareado | 50–74% | Los nombres se ven con letras cambiadas ("Vdoak"). Seguís viendo categoría, color, símbolo y número |
 | En pedo | 75–89% | Se pierde el número, y las cartas se cambian de lugar en la mano cada turno |
-| Al borde | 90–100% | Visión doble: cada carta muestra dos colores y dos símbolos, y solo uno de cada es el verdadero |
+| Al borde | 90–100% | Visión doble en el color: cada carta muestra dos colores y solo uno es el verdadero. El símbolo ya no se ve, como el número (decidido por osky) |
 
-**La carta de la mesa también la ves según tu nivel** (decidido por osky): si estás en pedo no le ves el número, y al borde le ves dos símbolos. Otro jugador sobrio la ve bien.
+**La carta de la mesa también la ves según tu nivel** (decidido por osky): si estás en pedo no le ves el número, y al borde tampoco le ves el símbolo. Otro jugador sobrio la ve bien.
 
 **El recetario de costado** (decidido por osky) muestra los 35 cócteles con sus recetas y se va borrando con el alcohol:
 

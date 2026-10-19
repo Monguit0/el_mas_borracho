@@ -50,7 +50,7 @@ describe('carta de la mesa', () => {
     fixedGame({ hands: [hand(), filler(8)], table: card('Jarra', 'azul', 'estrella', 2), patch: (s) => (s.players[0]!.alcohol = alcohol) });
 
   it('sobrio la ves entera', () => {
-    expect(playerView(withTable(0), 'p0').tableCard).toMatchObject({ name: 'Jarra', number: 2, colors: ['azul'], symbols: ['estrella'] });
+    expect(playerView(withTable(0), 'p0').tableCard).toMatchObject({ name: 'Jarra', number: 2, colors: ['azul'], symbol: 'estrella' });
   });
 
   it('borracho la ves tan mal como tu mano, aunque otro sobrio la vea bien', () => {
@@ -98,16 +98,15 @@ describe('vista por jugador', () => {
     expect(v.you.hand.every((c) => c.number === null)).toBe(true);
   });
 
-  it('al borde: visión doble, uno de los dos es el verdadero', () => {
+  it('al borde: visión doble en el color y sin símbolo', () => {
     const s = at(95);
     const v = playerView(s, 'p0');
     for (const c of v.you.hand) {
       expect(c.colors).toHaveLength(2);
-      expect(c.symbols).toHaveLength(2);
+      expect(c.symbol).toBeNull();
       const [id] = resolveHandles(s, 'p0', [c.handle])!;
       const real = s.players[0]!.hand.find((x) => x.id === id)!;
       expect(c.colors).toContain(real.color);
-      expect(c.symbols).toContain(real.symbol);
     }
   });
 
