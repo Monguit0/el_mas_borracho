@@ -147,7 +147,9 @@ export function GameScreen({ client, room, game, connection }: Props) {
                 setTimeout(() => setShake(false), 600);
                 pushBanner('bust', '¡TE PASASTE!', `${e.total}`, 2000);
               } else {
-                sfx.thud();
+                // Se pasó por poquito: "uuuh" de la mesa.
+                if (e.total <= 23) sfx.ooh();
+                else sfx.thud();
                 pushBanner('otherBust', `${name(e.playerId)} se pasó`, `${e.total}`, 1500);
               }
             }, 500);
@@ -221,7 +223,7 @@ export function GameScreen({ client, room, game, connection }: Props) {
             }, 900);
             break;
           case 'ROUND_STARTED':
-            later(() => sfx.pop(), 200);
+            later(() => (e.round === 1 ? sfx.start() : sfx.shuffle()), 600);
             break;
           default:
             break;
@@ -257,6 +259,16 @@ export function GameScreen({ client, room, game, connection }: Props) {
     lastTick.current = secondsLeft;
   }, [secondsLeft, myTurn]);
 
+  // Latido de nervios: en tu turno, de 17 a 20, más rápido cuanto más cerca de 21.
+  const nervous = myTurn && !game.pending && mine.status === 'playing' && mine.total >= 17 && mine.total < 21;
+  useEffect(() => {
+    if (!nervous) return;
+    const every = 1300 - (mine.total - 17) * 220;
+    sfx.heartbeat();
+    const id = setInterval(() => sfx.heartbeat(), every);
+    return () => clearInterval(id);
+  }, [nervous, mine.total]);
+
   const run = async (p: Promise<Ack<unknown>>) => {
     setError(null);
     setBusy(true);
@@ -265,7 +277,6 @@ export function GameScreen({ client, room, game, connection }: Props) {
     if (!result.ok) setError(result.error.message);
   };
   const act = (action: WireAction) => {
-    sfx.tap();
     void run(client.act(action));
   };
 

@@ -27,9 +27,28 @@ function audio(): AudioContext | null {
   return ctx;
 }
 
-/** Llamar en el primer toque de la página para destrabar el audio. */
+let unlocked = false;
+
+/**
+ * Llamar en cada toque: destraba el audio (el navegador no deja sonar nada antes) y lo despierta si
+ * el celular lo suspendió. En iPhone pide sesión de "reproducción" para que suene aunque el
+ * celular esté en silencio, como un video.
+ */
 export function unlockAudio(): void {
-  audio();
+  const c = audio();
+  if (!c || unlocked) return;
+  unlocked = true;
+  try {
+    const session = (navigator as unknown as { audioSession?: { type: string } }).audioSession;
+    if (session) session.type = 'playback';
+  } catch {
+    // Navegadores sin audioSession.
+  }
+  // Un sonido mudo dentro del toque termina de destrabar Safari.
+  const src = c.createBufferSource();
+  src.buffer = c.createBuffer(1, 1, 22050);
+  src.connect(c.destination);
+  src.start(0);
 }
 
 export function isMuted(): boolean {
@@ -169,6 +188,50 @@ export const sfx = {
   },
   pop() {
     tone(500, 0, 0.08, { wave: 'sine', gain: 0.2, slide: 2 });
+  },
+  /** Un botón cualquiera: un "toc" de madera. */
+  click() {
+    tone(320, 0, 0.05, { wave: 'sine', gain: 0.22, slide: 0.6 });
+    noise(0, 0.03, { gain: 0.12, freq: 2500, q: 3 });
+  },
+  /** Tocás una carta. */
+  cardTap() {
+    noise(0, 0.05, { gain: 0.22, freq: 2600, q: 1.5 });
+    tone(1400, 0, 0.04, { wave: 'sine', gain: 0.06 });
+  },
+  /** Se abre una hoja desde abajo. */
+  whoosh() {
+    noise(0, 0.22, { gain: 0.14, freq: 500, sweep: 2600, q: 0.9 });
+  },
+  /** Alguien entra a la sala. */
+  join() {
+    tone(NOTES.C5, 0, 0.12, { wave: 'triangle', gain: 0.16 });
+    tone(NOTES.G5, 0.09, 0.2, { wave: 'triangle', gain: 0.16 });
+  },
+  /** Alguien se va de la sala. */
+  leave() {
+    tone(NOTES.G5, 0, 0.12, { wave: 'triangle', gain: 0.14 });
+    tone(NOTES.C5, 0.09, 0.2, { wave: 'triangle', gain: 0.14 });
+  },
+  /** Mezclar el mazo: un "rrrrr" de cartas. */
+  shuffle() {
+    for (let i = 0; i < 14; i++) noise(i * 0.035, 0.04, { gain: 0.16, freq: 2200 + Math.random() * 1500, q: 1.2 });
+    noise(0.52, 0.09, { gain: 0.25, freq: 900, q: 0.8 });
+  },
+  /** Arranca la partida: mezcla y un acorde de "¡vamos!". */
+  start() {
+    sfx.shuffle();
+    [NOTES.C5, NOTES.E5, NOTES.G5].forEach((f, i) => tone(f, 0.7 + i * 0.08, 0.3, { wave: 'square', gain: 0.08 }));
+  },
+  /** Latido de nervios cuando estás cerca de 21. Más rápido cuanto más cerca. */
+  heartbeat() {
+    tone(70, 0, 0.12, { wave: 'sine', gain: 0.5, slide: 0.7 });
+    tone(62, 0.16, 0.14, { wave: 'sine', gain: 0.38, slide: 0.7 });
+  },
+  /** Un rival estuvo cerca: "uuuh". */
+  ooh() {
+    tone(NOTES.E5, 0, 0.5, { wave: 'sine', gain: 0.1, slide: 0.85, attack: 0.12 });
+    tone(NOTES.G5, 0, 0.5, { wave: 'sine', gain: 0.07, slide: 0.85, attack: 0.12 });
   },
 };
 
