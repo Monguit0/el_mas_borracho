@@ -23,10 +23,12 @@ export interface ServerConfig {
   readonly sweepIntervalMs: number;
   /** Detrás de un proxy (Render, Fly, Nginx) para tomar la IP real. */
   readonly trustProxy: boolean;
-  /** Solo para pruebas: deja fijar manos, alcohol y semilla. Nunca en producción. */
+  /** Solo para pruebas: deja fijar manos, fichas y semilla. Nunca en producción. */
   readonly enableTestHooks: boolean;
-  /** Si se pasa, reemplaza los segundos de respuesta de la sala (las pruebas no esperan 6 segundos). */
-  readonly defenseTimeoutMs: number | null;
+  /** Si se pasa, reemplaza los segundos de turno de la sala (las pruebas no esperan 30 segundos). */
+  readonly turnTimeoutMs: number | null;
+  /** La pausa entre rondas: si nadie toca "Siguiente ronda", arranca sola. */
+  readonly roundPauseMs: number;
   readonly rateLimits: {
     /** Jugadas por conexión. */
     readonly actionsPerSecond: number;
@@ -57,7 +59,8 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): ServerConfig {
     sweepIntervalMs: int(env['SWEEP_INTERVAL_MS'], 5_000),
     trustProxy: env['TRUST_PROXY'] === '1' || env['TRUST_PROXY'] === 'true',
     enableTestHooks: !isProduction && env['ENABLE_TEST_HOOKS'] === '1',
-    defenseTimeoutMs: env['DEFENSE_TIMEOUT_MS'] ? int(env['DEFENSE_TIMEOUT_MS'], 6_000) : null,
+    turnTimeoutMs: env['TURN_TIMEOUT_MS'] ? int(env['TURN_TIMEOUT_MS'], 30_000) : null,
+    roundPauseMs: int(env['ROUND_PAUSE_MS'], 15_000),
     rateLimits: {
       actionsPerSecond: int(env['RATE_ACTIONS_PER_SECOND'], 10),
       actionsBurst: int(env['RATE_ACTIONS_BURST'], 30),

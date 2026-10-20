@@ -48,7 +48,7 @@ type Handled<T> = { ack: Ack<T>; after?: () => void };
 export function createBroadcaster({ io, connections }: Pick<SocketDeps, 'io' | 'connections'>) {
   return function broadcast(change: RoomChange): void {
     const { room } = change;
-    // Cada jugador recibe su propia vista: su mano, vista con su borrachera.
+    // Cada jugador recibe su propia vista: sus cartas, y de los demás solo las que se ven.
     const viewers = room.players.flatMap((p) => {
       const socketId = connections.socketOf({ roomId: room.id, playerId: p.id });
       const socket = socketId ? io.sockets.sockets.get(socketId) : undefined;
@@ -74,23 +74,23 @@ export function createBroadcaster({ io, connections }: Pick<SocketDeps, 'io' | '
   };
 }
 
-/** El reloj de la respuesta: si el que tiene el cóctel enfrente no contesta a tiempo, se lo toma. */
-export function createDefenseWatcher({ rooms, games }: Pick<SocketDeps, 'rooms' | 'games'>, broadcast: (change: RoomChange) => void) {
+/** El reloj del turno: si el del turno no juega a tiempo, se planta; si nadie arranca la próxima ronda, arranca sola. */
+export function createDeadlineWatcher({ rooms, games }: Pick<SocketDeps, 'rooms' | 'games'>, broadcast: (change: RoomChange) => void) {
   const timers = new Map<string, ReturnType<typeof setTimeout>>();
   const watch = (room: Room): void => {
     const previous = timers.get(room.id);
     if (previous) clearTimeout(previous);
     timers.delete(room.id);
-    if (room.status !== 'PLAYING' || room.game?.phase !== 'defense' || room.defenseEndsAt === null) return;
-    const version = room.version;
+    if (room.status !== 'PLAYING' || room.deadline === null || room.deadlineKey === null) return;
+    const key = room.deadlineKey;
     const timer = setTimeout(() => {
       timers.delete(room.id);
-      if (rooms.get(room.id) !== room || room.version !== version) return;
-      const result = games.autoDrink(room);
+      if (rooms.get(room.id) !== room || room.deadlineKey !== key) return;
+      const result = games.timeout(room);
       if (!result.ok) return;
       broadcast({ room, deleted: false, notices: [], gameEvents: result.events, endedPlayers: [] });
       watch(room);
-    }, games.defenseMs(room));
+    }, Math.max(0, room.deadline - games.now()));
     timer.unref();
     timers.set(room.id, timer);
   };
@@ -103,14 +103,15 @@ export function createDefenseWatcher({ rooms, games }: Pick<SocketDeps, 'rooms' 
   };
 }
 
-export function registerSocketHandlers(deps: SocketDeps, broadcast: (change: RoomChange) => void, watchDefense: (room: Room) => void): void {
+export function registerSocketHandlers(deps: SocketDeps, broadcast: (change: RoomChange) => void, watchDeadline: (room: Room) => void): void {
   const { io, config, rooms, sessions, connections, games, validation, limits, log } = deps;
   let reactionSeq = 0;
 
-  /** Difunde un cambio de sala y, si la partida sigue, mira el reloj de la respuesta. */
+  /** Difunde un cambio de sala y, si la partida sigue, mira el reloj del turno. */
   const publish = (change: RoomChange) => {
+    if (!change.deleted) games.syncDeadline(change.room);
     broadcast(change);
-    if (!change.deleted) watchDefense(change.room);
+    if (!change.deleted) watchDeadline(change.room);
   };
 
   io.on('connection', (socket: GameSocket) => {

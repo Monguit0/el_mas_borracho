@@ -2,7 +2,7 @@
  * Reacciones: emojis que cualquier jugador puede mandar a la sala. Solo se aceptan los de esta
  * lista, así nadie puede mandar texto libre por acá.
  */
-export const REACTION_EMOJIS = ['🍻', '🥴', '🤮', '😂', '🔥', '👏', '😱', '💀', '🍋', '🙏', '😡', '🤫'] as const;
+export const REACTION_EMOJIS = ['😂', '🔥', '😱', '👏', '🍀', '💀', '😎', '🙏', '😡', '🤫', '🃏', '🎉'] as const;
 
 export type ReactionEmoji = (typeof REACTION_EMOJIS)[number];
 

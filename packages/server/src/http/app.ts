@@ -6,7 +6,7 @@ import { existsSync } from 'node:fs';
 import path from 'node:path';
 import express, { type NextFunction, type Request, type Response } from 'express';
 import helmet from 'helmet';
-import { CARD_DEFS, SPECIAL_BY_CODE, type Card, type SpecialCard, type SpecialCode } from '@borracho/engine';
+import { parseCardId, type Card } from '@borracho/engine';
 import { DEFAULT_ROOM_OPTIONS, PLAYER_LIMITS, normalizeRoomCode, type PublicConfig } from '@borracho/protocol';
 import type { ServerConfig } from '../config.js';
 import type { Logger } from '../logger.js';
@@ -83,51 +83,41 @@ export function createApp({ config, rooms, log, dropConnection, pushRoom }: AppD
       res.json({ dropped: dropConnection(room.id, player.id) });
     });
 
-    // Fija la mano (por nombres de carta) y, si se pasa, la mano especial de un jugador.
+    // Fija las cartas de un jugador (la primera es la oculta) y, si se pasa, las de arriba del mazo.
     app.post('/__test__/rooms/:code/hand', json, (req, res) => {
       const room = find(req);
-      const body = req.body as { name?: unknown; cards?: unknown; specials?: unknown } | undefined;
+      const body = req.body as { name?: unknown; cards?: unknown; top?: unknown } | undefined;
       const player = room?.game?.players.find((p) => p.name === body?.name);
       if (!room?.game || !player) return void res.status(404).json({ error: 'No hay partida o no existe el jugador' });
-      const names = body?.cards;
-      const codes = body?.specials;
-      const defs = Array.isArray(names) ? names.map((n) => CARD_DEFS.find((d) => d.name === n)) : null;
-      if (!defs || defs.some((d) => !d)) return void res.status(400).json({ error: 'cartas inválidas' });
-      if (codes !== undefined && !(Array.isArray(codes) && codes.every((c) => SPECIAL_BY_CODE.has(c as SpecialCode)))) {
-        return void res.status(400).json({ error: 'especiales inválidas' });
-      }
-      player.hand = defs.map((d, i): Card => ({
-        id: `t-${player.id}-${i}`,
-        defCode: d!.code,
-        name: d!.name,
-        category: d!.category,
-        color: 'verde',
-        symbol: 'circulo',
-        number: 1,
-      }));
-      if (codes) {
-        player.specials = (codes as SpecialCode[]).map((code, i): SpecialCard => {
-          const d = SPECIAL_BY_CODE.get(code)!;
-          return { id: `ts-${player.id}-${i}`, code, name: d.name, kind: d.kind, rarity: d.rarity };
-        });
-      }
+      const parse = (raw: unknown): Card[] | null => {
+        if (!Array.isArray(raw)) return null;
+        const cards = raw.map((id) => (typeof id === 'string' ? parseCardId(id) : null));
+        return cards.every(Boolean) ? (cards as Card[]) : null;
+      };
+      const cards = parse(body?.cards);
+      const top = body?.top === undefined ? [] : parse(body.top);
+      if (!cards || !top) return void res.status(400).json({ error: 'cartas inválidas' });
+      const game = room.game;
+      const taken = new Set([...cards, ...top].map((c) => c.id));
+      // Las cartas que se piden salen de donde estén, así el mazo sigue teniendo 52.
+      for (const p of game.players) p.cards = p.cards.filter((h) => !taken.has(h.card.id));
+      game.deck = game.deck.filter((c) => !taken.has(c.id));
+      game.discard = game.discard.filter((c) => !taken.has(c.id));
+      player.cards = cards.map((card, i) => ({ card, hidden: i === 0, revealed: false, seenBy: [] }));
+      game.deck.push(...[...top].reverse());
       rooms.touch(room);
       pushRoom?.(room);
       res.json({ ok: true });
     });
 
-    // Fija alcohol y puntos de un jugador para probar finales sin jugar veinte turnos.
+    // Fija las fichas de un jugador para probar finales sin jugar diez rondas.
     app.post('/__test__/rooms/:code/stats', json, (req, res) => {
       const room = find(req);
-      const body = req.body as { name?: unknown; alcohol?: unknown; points?: unknown } | undefined;
+      const body = req.body as { name?: unknown; chips?: unknown } | undefined;
       const player = room?.game?.players.find((p) => p.name === body?.name);
       if (!room || !player) return void res.status(404).json({ error: 'No hay partida o no existe el jugador' });
-      for (const key of ['alcohol', 'points'] as const) {
-        const value = body?.[key];
-        if (value === undefined) continue;
-        if (!Number.isSafeInteger(value) || (value as number) < 0) return void res.status(400).json({ error: `${key} inválido` });
-        player[key] = value as number;
-      }
+      if (!Number.isSafeInteger(body?.chips) || (body!.chips as number) < 0) return void res.status(400).json({ error: 'chips inválido' });
+      player.chips = body!.chips as number;
       rooms.touch(room);
       pushRoom?.(room);
       res.json({ ok: true });

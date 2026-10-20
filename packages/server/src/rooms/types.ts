@@ -23,8 +23,10 @@ export interface Room {
   options: RoomOptions;
   /** Estado del motor. null en la sala de espera. */
   game: GameState | null;
-  /** Hasta cuándo tiene para responder el que tiene un cóctel enfrente. */
-  defenseEndsAt: number | null;
+  /** Hasta cuándo tiene para jugar el del turno (o cuándo arranca sola la próxima ronda). */
+  deadline: number | null;
+  /** Qué momento de la partida mide el reloj (ronda, turno, elección): si cambia, el reloj arranca de nuevo. */
+  deadlineKey: string | null;
   readonly createdAt: number;
   updatedAt: number;
   finishedAt: number | null;

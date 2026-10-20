@@ -18,10 +18,10 @@ export function LobbyScreen({ client, room, me }: { client: OnlineClient; room: 
 
   const share = async () => {
     const url = inviteUrl(room.code);
-    const text = `Vení a jugar al Más Borracho. Código ${room.code}`;
+    const text = `Vení a jugar al 21. Código ${room.code}`;
     try {
       if (navigator.share) {
-        await navigator.share({ title: 'El Más Borracho', text, url });
+        await navigator.share({ title: '21 · Amigos de la mesa', text, url });
         return;
       }
       await navigator.clipboard.writeText(`${text}: ${url}`);
@@ -120,18 +120,18 @@ export function LobbyScreen({ client, room, me }: { client: OnlineClient; room: 
 
       <div className="panel">
         <div className="label">Opciones{isHost ? '' : ' (las elige el anfitrión)'}</div>
-        {option('barMax', 'Hasta dónde aguantás', [
-          { value: 100, text: '100%' },
-          { value: 150, text: '150%' },
+        {option('rounds', 'Rondas', [
+          { value: 5, text: '5' },
+          { value: 10, text: '10' },
+          { value: 15, text: '15' },
         ])}
-        {option('defenseSeconds', 'Tiempo para responder', [
-          { value: 6, text: '6 s' },
-          { value: 10, text: '10 s' },
+        {option('turnSeconds', 'Tiempo por turno', [
+          { value: 30, text: '30 s' },
+          { value: 60, text: '60 s' },
         ])}
-        {option('deckCopies', 'Mazo', [
-          { value: 2, text: 'Completo' },
-          { value: 1, text: 'Chico' },
-        ])}
+        <p className="muted small" style={{ margin: 0 }}>
+          Arrancan con 10 fichas y cada ronda ponen 1. El que más cerca de 21 quede se lleva el pozo.
+        </p>
       </div>
 
       <div style={{ marginTop: 'auto' }}>

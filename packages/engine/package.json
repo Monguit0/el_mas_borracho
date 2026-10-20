@@ -6,10 +6,10 @@
   "main": "src/index.ts",
   "scripts": {
     "test": "vitest run",
-    "typecheck": "tsc --noEmit",
-    "sim": "tsx src/sim/cli.ts"
+    "typecheck": "tsc --noEmit"
   },
   "devDependencies": {
     "@types/node": "^22.0.0"
-  }
+  },
+  "description": "Las reglas del 21 con personajes: mazo, efectos de las 52 cartas, rondas y fichas. Sin red ni pantallas."
 }

@@ -4,7 +4,7 @@ import type { Room } from './types.js';
 
 /**
  * La sala como la ve un jugador. Lo de la sala es igual para todos; la partida la arma el motor para
- * cada uno (su mano, según su borrachera). No incluye hashes de sesión ni nada interno.
+ * cada uno (sus cartas, y de los demás solo las que se ven). No incluye hashes de sesión ni nada interno.
  */
 export function toRoomView(room: Room, viewerId: string): RoomView {
   const game = room.game;
@@ -23,7 +23,7 @@ export function toRoomView(room: Room, viewerId: string): RoomView {
       isConnected: p.isConnected,
     })),
     options: room.options,
-    game: game && inGame ? { ...playerView(game, viewerId), defenseEndsAt: room.defenseEndsAt } : null,
+    game: game && inGame ? { ...playerView(game, viewerId), deadline: room.deadline } : null,
     createdAt: room.createdAt,
     version: room.version,
   };

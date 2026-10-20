@@ -1,55 +1,48 @@
-import { CARD_DEFS, type Card, type CardSymbol, type Color, type CardNumber } from '../src/cards.js';
-import { createGame } from '../src/engine.js';
-import { makeRules, type RulesConfig } from '../src/rules.js';
-import { SPECIAL_BY_CODE, type SpecialCard, type SpecialCode } from '../src/specials.js';
-import type { GameState } from '../src/state.js';
+import { parseCardId, type Card } from '../src/cards.js';
+import { applyAction, createGame, type Action, type GameEvent } from '../src/engine.js';
+import { makeRules, type GameState, type Rules } from '../src/state.js';
 
-let n = 0;
-
-/** Una carta armada a mano para las pruebas. */
-export function card(name: string, color: Color = 'verde', symbol: CardSymbol = 'circulo', number: CardNumber = 1): Card {
-  const def = CARD_DEFS.find((d) => d.name === name);
-  if (!def) throw new Error(`No existe la carta ${name}`);
-  return { id: `t${++n}`, defCode: def.code, name, category: def.category, color, symbol, number };
-}
-
-/** Una carta especial armada a mano. */
-export function special(code: SpecialCode): SpecialCard {
-  const d = SPECIAL_BY_CODE.get(code)!;
-  return { id: `sp${++n}`, code, name: d.name, kind: d.kind, rarity: d.rarity };
-}
-
-/** Un relleno neutro: no entra en ninguna receta. */
-export function filler(count: number): Card[] {
-  return Array.from({ length: count }, () => card('Bota de vidrio', 'azul', 'rombo', 0));
+export function c(id: string): Card {
+  const card = parseCardId(id);
+  if (!card) throw new Error(`Carta inválida ${id}`);
+  return card;
 }
 
 /**
- * Partida con manos y mazo fijos. Le toca a p0, que ya robó (el mazo se arma con lo que se pase).
- * Sin ruido: las manos arrancan con lo que diga la prueba.
+ * Partida fijada: cada jugador con las cartas que se digan (la primera es la oculta) y el mazo con
+ * las de `top` arriba (la primera es la próxima que sale). Le toca a p0.
  */
-export function fixedGame(opts: {
-  players?: number;
-  hands: Card[][];
-  /** Manos especiales (por defecto, vacías). */
-  specials?: SpecialCode[][];
-  deck?: Card[];
-  /** La carta de la mesa (arriba del descarte). */
-  table?: Card;
-  rules?: RulesConfig;
-  patch?: (s: GameState) => void;
-}): GameState {
-  const players = Array.from({ length: opts.players ?? opts.hands.length }, (_, i) => ({ id: `p${i}`, name: `J${i}` }));
-  // Por defecto sin "jugar sí o sí", así las pruebas pueden cerrar turnos vacíos; las de esa regla la prenden.
-  const { state } = createGame({ players, seed: 1, rules: opts.rules ?? makeRules({ mustPlay: false }) });
-  state.currentIndex = 0;
-  state.turn = 1;
-  state.discard = opts.table ? [opts.table] : [];
-  state.players.forEach((p, i) => (p.hand = opts.hands[i] ?? []));
-  state.specialDeck.push(...state.players.flatMap((p) => p.specials));
-  state.players.forEach((p, i) => (p.specials = (opts.specials?.[i] ?? []).map(special)));
-  state.deck = opts.deck ?? filler(40);
-  state.totalCards = state.deck.length + state.discard.length + state.players.reduce((k, p) => k + p.hand.length, 0);
-  opts.patch?.(state);
+export function fixedGame(opts: { hands: string[][]; top?: string[]; rules?: Partial<Rules>; chips?: number[] }): GameState {
+  const players = opts.hands.map((_, i) => ({ id: `p${i}`, name: `J${i}` }));
+  const { state } = createGame({ players, seed: 7, rules: makeRules(opts.rules) });
+  const used = new Set([...opts.hands.flat(), ...(opts.top ?? [])]);
+  const all = [...state.deck, ...state.players.flatMap((p) => p.cards.map((h) => h.card))].filter((card) => !used.has(card.id));
+  state.players.forEach((p, i) => {
+    p.cards = opts.hands[i]!.map((id, j) => ({ card: c(id), hidden: j === 0, revealed: false, seenBy: [] }));
+    p.status = i === 0 ? 'playing' : 'waiting';
+    p.announced21 = false;
+    if (opts.chips?.[i] !== undefined) p.chips = opts.chips[i]!;
+    p.chipsAtStart = p.chips;
+  });
+  state.deck = [...all, ...[...(opts.top ?? [])].reverse().map(c)];
+  state.discard = [];
+  state.order = players.map((p) => p.id);
+  state.currentId = 'p0';
+  state.pending = null;
+  state.phase = 'playing';
   return state;
+}
+
+export function act(state: GameState, playerId: string, action: Action): { state: GameState; events: GameEvent[] } {
+  const r = applyAction(state, playerId, action);
+  if (!r.ok) throw new Error(`Jugada rechazada: ${r.error}`);
+  return { state: r.state, events: r.events };
+}
+
+export function p(state: GameState, id: string) {
+  return state.players.find((x) => x.id === id)!;
+}
+
+export function ids(state: GameState, id: string): string[] {
+  return p(state, id).cards.map((h) => h.card.id);
 }

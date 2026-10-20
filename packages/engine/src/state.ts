@@ -1,83 +1,113 @@
 import type { Card } from './cards.js';
-import type { RulesConfig } from './rules.js';
-import type { SpecialCard } from './specials.js';
 
-/** Por qué quedó afuera: pasó el 100%, hizo 3 papelones, o se fue de la sala. */
-export type OutReason = 'quiebra' | 'verguenza' | 'abandono';
+export interface Rules {
+  readonly startChips: number;
+  /** Lo que pone cada uno en el pozo al empezar la ronda. */
+  readonly ante: number;
+  /** Rondas de la partida. Al final gana el que tenga más fichas. */
+  readonly rounds: number;
+}
+
+export const DEFAULT_RULES: Rules = Object.freeze({ startChips: 10, ante: 1, rounds: 10 });
+
+export function makeRules(overrides: Partial<Rules> = {}): Rules {
+  return Object.freeze({ ...DEFAULT_RULES, ...overrides });
+}
+
+export interface HandCard {
+  readonly card: Card;
+  /** Boca abajo: solo la ve el dueño (y los que la espiaron). */
+  hidden: boolean;
+  /** Dada vuelta para todos. */
+  revealed: boolean;
+  /** Los que la vieron aunque esté boca abajo. */
+  seenBy: string[];
+}
+
+/** waiting: todavía no jugó · playing: es su turno · stood: se plantó · busted: se pasó · out: fuera de la partida. */
+export type SeatStatus = 'waiting' | 'playing' | 'stood' | 'busted' | 'out';
+
+export type OutReason = 'fundido' | 'abandono';
 
 export interface PlayerState {
-  id: string;
-  name: string;
-  hand: Card[];
-  alcohol: number;
-  points: number;
-  eliminated: boolean;
-  /** Por qué quedó afuera. */
+  readonly id: string;
+  readonly name: string;
+  chips: number;
   outReason: OutReason | null;
-  /** Papelones: descartes por coincidencia mal hechos. Con 3, perdés. */
-  shame: number;
-  /** Turnos propios que le quedan al café (0 = sin café). */
-  coffeeTurnsLeft: number;
-  /** La mano especial: secreta, los demás solo ven cuántas tiene. */
-  specials: SpecialCard[];
-  /** Cuántos de los próximos cócteles que tome le pegan la mitad (Maní, Empanadas). */
-  foodHalves: number;
-  /** Choripán: todo lo que le hagan tomar le pega la mitad, hasta que empiece su próximo turno. */
-  choripan: boolean;
-  /** Conductor designado: no le pueden tirar nada hasta que empiece su próximo turno. */
-  driver: boolean;
+  // --- De la ronda ---
+  status: SeatStatus;
+  cards: HandCard[];
+  /** Ajuste del total por Soborno o Apagafuegos. */
+  adjust: number;
+  /** Ya jugó su turno en esta ronda (para volver con Indulto). */
+  played: boolean;
+  hitsThisTurn: number;
+  /** Cerrojo: cuántas cartas puede pedir en su turno (null = sin límite). */
+  maxHits: number | null;
+  /** Manta: efectos de rivales que todavía frena. */
+  blankets: number;
+  /** Escudo: ningún efecto de rival lo toca en la ronda. */
+  shield: boolean;
+  loan: boolean;
+  cursed: boolean;
+  partnerId: string | null;
+  usedBribe: boolean;
+  usedFirefighter: boolean;
+  announced21: boolean;
+  /** Fichas al empezar la ronda (para mostrar cuánto ganó o perdió). */
+  chipsAtStart: number;
 }
 
-/** Un cóctel lanzado que espera que el rival decida si se lo toma o le responde con una carta especial. */
-export interface PendingCocktail {
-  /** El que lo armó: es el que cobra. */
-  fromId: string;
-  /** El que se lo mandó al rival de ahora (el que lo armó, o el que se lo pasó con "Doblalo"). */
-  senderId: string;
-  targetId: string;
-  cocktailCode: string;
-  /** Lo que le pega al rival de ahora. */
-  alcohol: number;
-  /** Lo que le pega a cada rival de la cola (sin los "Doblalo" del rival anterior). */
-  baseAlcohol: number;
-  points: number;
-  /** Cuando el cóctel le pega a todos: los rivales que todavía faltan, en orden. */
-  queue: string[];
-  /** Si el que lanzó ya cobró (cobra una sola vez aunque se lo tomen varios). */
-  paid: boolean;
+export interface ChoiceOption {
+  readonly id: string;
+  readonly label: string;
+  /** Carta para mostrar (por ejemplo, la que se espió). Solo la ve el que elige. */
+  readonly card?: Card;
 }
 
-export type PaidAction = 'swap' | 'shot' | 'water' | 'coffee' | 'buy';
+export interface Pending {
+  readonly playerId: string;
+  /** La carta que activó la elección. */
+  readonly sourceId: string;
+  /** El efecto que se está resolviendo (puede ser otro si es Espejo). */
+  readonly effectId: string;
+  readonly step: number;
+  readonly prompt: string;
+  readonly options: readonly ChoiceOption[];
+  readonly data: Readonly<Record<string, string>>;
+}
 
-export type Phase = 'main' | 'defense' | 'finished';
+export interface RoundResult {
+  readonly playerId: string;
+  readonly total: number;
+  readonly busted: boolean;
+  readonly winner: boolean;
+  /** Fichas ganadas o perdidas en la ronda (con la apuesta). */
+  readonly delta: number;
+  readonly note: string | null;
+}
+
+export type Phase = 'playing' | 'roundOver' | 'finished';
 
 export interface GameState {
-  rules: RulesConfig;
+  readonly rules: Rules;
   players: PlayerState[];
+  round: number;
+  phase: Phase;
   /** El tope del mazo es el final del arreglo. */
   deck: Card[];
-  /** La pila de descarte. La de arriba (la última) es "la carta de la mesa". */
   discard: Card[];
-  currentIndex: number;
-  /** Turno global, empieza en 1. */
-  turn: number;
-  phase: Phase;
-  /** Cócteles armados este turno (bien o mal). */
-  cocktailsThisTurn: number;
-  /** Jugadas hechas este turno: cócteles bien armados y descartes por coincidencia bien hechos. Sin ninguna, no podés cerrar. */
-  playedThisTurn: number;
-  /** Descartes por coincidencia usados este turno. */
-  matchDiscardsThisTurn: number;
-  /** Cuántas veces se usó cada cosa este turno: cada uso repetido cuesta el doble. */
-  usesThisTurn: Record<PaidAction, number>;
-  pending: PendingCocktail | null;
-  /** Mazo de cartas especiales (el tope es el final). */
-  specialDeck: SpecialCard[];
-  specialDiscard: SpecialCard[];
+  /** Orden de juego de la ronda (ids). */
+  order: string[];
+  currentId: string | null;
+  pending: Pending | null;
+  pot: number;
+  /** El último efecto "al pedir" que se activó en la ronda (para Espejo). */
+  lastEffectId: string | null;
+  results: RoundResult[] | null;
   winnerId: string | null;
-  /** Estado del azar del motor (rearmar el mazo). Nunca sale del servidor. */
+  /** Mensajes públicos recientes, para el que entra o vuelve. */
+  log: string[];
+  /** Estado del azar. Nunca sale del servidor. */
   rngState: number;
-  /** Sal secreta para los identificadores que ve cada jugador. Nunca sale del servidor. */
-  viewSalt: number;
-  totalCards: number;
 }

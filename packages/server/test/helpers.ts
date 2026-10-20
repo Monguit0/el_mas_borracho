@@ -28,7 +28,8 @@ export async function startTestServer(overrides: Partial<ServerConfig> = {}): Pr
   const config = testConfig({
     enableTestHooks: true,
     // Lo bastante largo para no vencerse solo en las pruebas que no lo miran.
-    defenseTimeoutMs: 60_000,
+    turnTimeoutMs: 60_000,
+    roundPauseMs: 60_000,
     rateLimits: {
       actionsPerSecond: 1000,
       actionsBurst: 1000,
@@ -159,10 +160,12 @@ export async function seatPlayers(t: TestServer, names: string[], maxPlayers = 6
 export async function startGame(t: TestServer, names: string[]) {
   const table = await seatPlayers(t, names);
   const host = table.seats[0]!;
+  // Semilla fija: el reparto no trae un 21 de mano que termine la ronda antes de empezar.
+  await hook(t, table.code, 'seed', { seed: 4242 });
   const states = table.seats.map((s) => next(s.socket, 'room:state', (r) => r.status === 'PLAYING'));
   expectOk(await request(host.socket, 'room:start', {}));
   const views = await Promise.all(states);
-  const currentId = views[0]!.game!.currentPlayerId;
+  const currentId = views[0]!.game!.currentId;
   const current = table.seats.find((s) => s.id === currentId)!;
   const others = table.seats.filter((s) => s !== current);
   return { ...table, current, others };
@@ -188,6 +191,3 @@ export function roomOf(t: TestServer, code: string) {
   if (!room) throw new Error(`No existe la sala ${code}`);
   return room;
 }
-
-export const DESTORNILLADOR = ['Vodka', 'Jugo de naranja', 'Vaso highball', 'Construir'];
-export const FERNET = ['Fernet', 'Coca', 'Botella cortada'];

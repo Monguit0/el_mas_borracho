@@ -12,7 +12,7 @@ import { RoomService } from './rooms/roomService.js';
 import type { Room } from './rooms/types.js';
 import { RateLimiter } from './security/rateLimiter.js';
 import { SessionService } from './sessions/sessionService.js';
-import { createBroadcaster, createDefenseWatcher, registerSocketHandlers, type GameServer } from './socket/socketHandlers.js';
+import { createBroadcaster, createDeadlineWatcher, registerSocketHandlers, type GameServer } from './socket/socketHandlers.js';
 import { ValidationService } from './validation/validationService.js';
 
 export interface ServerOptions {
@@ -72,8 +72,8 @@ export function createBorrachoServer(config: ServerConfig, options: ServerOption
   const deps = { io, config, rooms, sessions, connections, games, validation, limits, log };
   const broadcast = createBroadcaster(deps);
   broadcastRef = broadcast;
-  const defense = createDefenseWatcher(deps, broadcast);
-  registerSocketHandlers(deps, broadcast, defense.watch);
+  const deadlines = createDeadlineWatcher(deps, broadcast);
+  registerSocketHandlers(deps, broadcast, deadlines.watch);
 
   const sweep = () => {
     for (const change of rooms.sweep()) broadcast(change);
@@ -99,7 +99,7 @@ export function createBorrachoServer(config: ServerConfig, options: ServerOption
     },
     async close() {
       clearInterval(timer);
-      defense.clear();
+      deadlines.clear();
       await new Promise<void>((resolve) => io.close(() => resolve()));
       if (http.listening) await new Promise<void>((resolve) => http.close(() => resolve()));
     },
