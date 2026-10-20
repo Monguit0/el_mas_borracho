@@ -1,7 +1,9 @@
 import { useEffect, type ReactNode } from 'react';
+import { sfx } from '../lib/sound';
 
 /** Una hoja que sube desde abajo, sobre la mesa. Tocar afuera la cierra (si se puede cerrar). */
 export function Sheet({ children, onClose, label }: { children: ReactNode; onClose?: () => void; label: string }) {
+  useEffect(() => sfx.whoosh(), []);
   useEffect(() => {
     if (!onClose) return;
     const onKey = (e: KeyboardEvent) => {

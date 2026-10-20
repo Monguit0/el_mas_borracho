@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { sfx } from '../lib/sound';
 import type { Ack, RoomOptions, RoomView } from '@borracho/protocol';
 import type { OnlineClient } from '../net/OnlineClient';
 import { inviteUrl } from '../lib/invite';
@@ -9,6 +10,14 @@ export function LobbyScreen({ client, room, me }: { client: OnlineClient; room: 
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const isHost = room.hostPlayerId === me;
+
+  // Suena cuando alguien entra o se va.
+  const count = useRef(room.players.length);
+  useEffect(() => {
+    if (room.players.length > count.current) sfx.join();
+    else if (room.players.length < count.current) sfx.leave();
+    count.current = room.players.length;
+  }, [room.players.length]);
 
   const run = async (p: Promise<Ack<unknown>>) => {
     setError(null);
