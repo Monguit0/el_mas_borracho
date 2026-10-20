@@ -1,10 +1,9 @@
 /**
- * Las jugadas sobre una sala: traduce los handles de cartas que manda el celular a ids, aplica el
- * motor y lleva el reloj de la respuesta. El servidor es la única autoridad: el azar y las cuentas
- * son del motor.
+ * Las jugadas sobre una sala: aplica el motor y lleva el reloj del turno. El servidor es la única
+ * autoridad: el azar y las cuentas son del motor.
  */
-import { applyAction, resolveHandles, type Action, type GameEvent } from '@borracho/engine';
-import { gameError, handlesOf, roomError, type AppError, type WireAction } from '@borracho/protocol';
+import { applyAction, timeoutAction, type Action, type GameEvent } from '@borracho/engine';
+import { gameError, roomError, type AppError, type WireAction } from '@borracho/protocol';
 import type { ServerConfig } from '../config.js';
 import type { RoomService } from '../rooms/roomService.js';
 import type { Room } from '../rooms/types.js';
@@ -14,70 +13,47 @@ export type GameOutcome = { readonly ok: true; readonly events: GameEvent[] } | 
 export class GameService {
   constructor(
     private readonly rooms: RoomService,
-    private readonly config: Pick<ServerConfig, 'defenseTimeoutMs'>,
-    private readonly now: () => number = Date.now,
+    private readonly config: Pick<ServerConfig, 'turnTimeoutMs' | 'roundPauseMs'>,
+    readonly now: () => number = Date.now,
   ) {}
 
   act(room: Room, playerId: string, wire: WireAction): GameOutcome {
+    if (!room.game || room.status !== 'PLAYING') return { ok: false, error: roomError('WRONG_ROOM_STATUS') };
+    return this.apply(room, playerId, wire);
+  }
+
+  /** Se venció el reloj: el del turno se planta (o elige la primera opción), o arranca la próxima ronda. */
+  timeout(room: Room): GameOutcome {
+    const next = room.game && room.status === 'PLAYING' ? timeoutAction(room.game) : null;
+    if (!next) return { ok: false, error: roomError('WRONG_ROOM_STATUS') };
+    return this.apply(room, next.playerId, next.action);
+  }
+
+  /** Pone en hora el reloj: arranca de nuevo solo si cambió el turno, la elección o la ronda. */
+  syncDeadline(room: Room): void {
     const game = room.game;
-    if (!game || room.status !== 'PLAYING') return { ok: false, error: roomError('WRONG_ROOM_STATUS') };
-    const handles = handlesOf(wire);
-    const ids = handles.length > 0 ? resolveHandles(game, playerId, [...handles]) : [];
-    // Un handle viejo (cambió el turno o tu alcohol) o inventado: no se adivina qué carta era.
-    if (!ids) return { ok: false, error: roomError('CARDS_CHANGED') };
-    return this.apply(room, playerId, toAction(wire, ids));
+    if (!game || room.status !== 'PLAYING' || game.phase === 'finished') {
+      room.deadline = null;
+      room.deadlineKey = null;
+      return;
+    }
+    const key = `${game.round}:${game.phase}:${game.currentId ?? ''}:${game.pending?.effectId ?? ''}:${game.pending?.step ?? 0}`;
+    if (key === room.deadlineKey) return;
+    room.deadlineKey = key;
+    room.deadline = this.now() + (game.phase === 'roundOver' ? this.config.roundPauseMs : this.turnMs(room));
   }
 
-  /** Se venció el tiempo para responder: se lo toma. */
-  autoDrink(room: Room): GameOutcome {
-    const target = room.game?.phase === 'defense' ? room.game.pending?.targetId : undefined;
-    if (!target || room.status !== 'PLAYING') return { ok: false, error: roomError('WRONG_ROOM_STATUS') };
-    return this.apply(room, target, { type: 'RESPOND', choice: 'drink' });
-  }
-
-  /** Cuánto tiene para responder el que tiene el cóctel enfrente. */
-  defenseMs(room: Room): number {
-    return this.config.defenseTimeoutMs ?? room.options.defenseSeconds * 1000;
+  turnMs(room: Room): number {
+    return this.config.turnTimeoutMs ?? room.options.turnSeconds * 1000;
   }
 
   private apply(room: Room, playerId: string, action: Action): GameOutcome {
     const result = applyAction(room.game!, playerId, action);
     if (!result.ok) return { ok: false, error: gameError(result.error) };
     room.game = result.state;
-    // Cada jugada que deja un cóctel esperando respuesta es un rival nuevo: arranca su reloj.
-    room.defenseEndsAt = result.state.phase === 'defense' ? this.now() + this.defenseMs(room) : null;
     this.rooms.settle(room);
+    this.syncDeadline(room);
     this.rooms.touch(room);
     return { ok: true, events: result.events };
-  }
-}
-
-function toAction(wire: WireAction, ids: string[]): Action {
-  switch (wire.type) {
-    case 'SWAP':
-      return { type: 'SWAP', cardId: ids[0]! };
-    case 'SHOT':
-    case 'MATCH_DISCARD':
-      return { type: wire.type, cardIds: ids };
-    case 'MAKE_COCKTAIL':
-      return {
-        type: 'MAKE_COCKTAIL',
-        cocktailCode: wire.cocktailCode,
-        cardIds: ids,
-        targetId: wire.targetId,
-        ...(wire.specialIds ? { specialIds: [...wire.specialIds] } : {}),
-      };
-    case 'END_TURN':
-      return { type: 'END_TURN', discardIds: ids };
-    case 'RESPOND':
-      if (wire.choice === 'drink') return { type: 'RESPOND', choice: 'drink' };
-      return {
-        type: 'RESPOND',
-        choice: 'special',
-        specialId: wire.specialId,
-        ...(wire.counter ? { counter: { cocktailCode: wire.counter.cocktailCode, cardIds: ids } } : {}),
-      };
-    default:
-      return wire;
   }
 }

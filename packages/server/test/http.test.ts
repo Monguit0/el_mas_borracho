@@ -12,7 +12,7 @@ describe('HTTP', () => {
     expect(health.body).toEqual({ status: 'ok' });
     expect(health.headers['content-security-policy']).toContain("default-src 'self'");
     const config = await request(server.http).get('/api/config');
-    expect(config.body).toMatchObject({ players: { min: 2, max: 6 }, options: { barMax: 100, defenseSeconds: 6, deckCopies: 2 } });
+    expect(config.body).toMatchObject({ players: { min: 2, max: 6 }, options: { rounds: 10, turnSeconds: 30 } });
     await server.close();
   });
 

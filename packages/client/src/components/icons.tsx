@@ -1,5 +1,4 @@
 import type { ReactNode } from 'react';
-import type { CardSymbol, Category } from '@borracho/engine';
 
 interface IconProps {
   size?: number;
@@ -90,65 +89,15 @@ export const InfoIcon = stroke(
 );
 export const MenuIcon = stroke(<path d="M4 7h16M4 12h16M4 17h16" />);
 
-const SYMBOL_PATHS: Record<CardSymbol, ReactNode> = {
-  estrella: <path d="M12 2l3 6.5 7 .8-5.2 4.8 1.4 7L12 17.6 5.8 21l1.4-7L2 9.3l7-.8z" />,
-  triangulo: <path d="M12 3l10 18H2z" />,
-  circulo: <circle cx="12" cy="12" r="9.5" />,
-  rombo: <path d="M12 2l10 10-10 10L2 12z" />,
-};
-
-export function SymbolIcon({ symbol, size = 13, color = 'currentColor' }: { symbol: CardSymbol; size?: number; color?: string }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill={color} aria-label={symbol}>
-      {SYMBOL_PATHS[symbol]}
-    </svg>
-  );
-}
-
-const ART_PATHS: Record<Category, ReactNode> = {
-  ingrediente: (
-    <>
-      <path d="M10 2h4v4l2 3v12a1 1 0 0 1-1 1H9a1 1 0 0 1-1-1V9l2-3z" />
-      <path d="M8 13h8" />
-    </>
-  ),
-  cristaleria: (
-    <>
-      <path d="M6 3h12l-1.5 17a1 1 0 0 1-1 1h-7a1 1 0 0 1-1-1z" />
-      <path d="M6.5 8h11" />
-    </>
-  ),
-  utensilio: (
-    <>
-      <path d="M8 8h8l-1 13H9z" />
-      <path d="M9 8V6a3 3 0 0 1 6 0v2" />
-      <path d="M11 3h2" />
-    </>
-  ),
-  tecnica: (
-    <>
-      <path d="M4 14c2-4 6-4 8 0s6 4 8 0" />
-      <path d="M4 9c2-4 6-4 8 0s6 4 8 0" />
-    </>
-  ),
-};
-
-export function ArtIcon({ category, size = 26, color = '#F1E8D6' }: { category: Category; size?: number; color?: string }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      {ART_PATHS[category]}
-    </svg>
-  );
-}
-
-export function GlassLogo() {
-  return (
-    <svg width="70" height="80" viewBox="0 0 70 80" fill="none" stroke="#2A1A12" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <path d="M8 8h54L37 40v28" />
-      <path d="M22 72h30" />
-      <path d="M15 16h40" />
-      <circle cx="50" cy="12" r="9" stroke="#2F5E2B" />
-      <path d="M50 3v18M41 12h18" stroke="#2F5E2B" />
-    </svg>
-  );
-}
+export const SoundIcon = stroke(
+  <>
+    <path d="M4 9v6h4l5 4V5L8 9z" />
+    <path d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12" />
+  </>,
+);
+export const MuteIcon = stroke(
+  <>
+    <path d="M4 9v6h4l5 4V5L8 9z" />
+    <path d="M17 9l5 6M22 9l-5 6" />
+  </>,
+);

@@ -1,5 +1,5 @@
 # Render: un solo servicio web gratuito con el servidor y las pantallas del celular.
-# Es un servicio aparte del de Diez Mil.
+# Es un servicio aparte del de Diez Mil. Ahora corre el 21 (el nombre del servicio quedó del juego anterior).
 services:
   - type: web
     name: el-mas-borracho

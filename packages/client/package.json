@@ -12,8 +12,8 @@
   "dependencies": {
     "@borracho/engine": "0.1.0",
     "@borracho/protocol": "0.1.0",
-    "@fontsource/barlow": "^5.2.0",
-    "@fontsource/oswald": "^5.2.0",
+    "@fontsource/alfa-slab-one": "^5.3.0",
+    "@fontsource/bricolage-grotesque": "^5.3.0",
     "react": "^19.3.0",
     "react-dom": "^19.3.0",
     "socket.io-client": "^4.8.4"

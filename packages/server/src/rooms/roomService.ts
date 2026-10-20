@@ -76,7 +76,8 @@ export class RoomService {
       players: [],
       options: { ...options },
       game: null,
-      defenseEndsAt: null,
+      deadline: null,
+      deadlineKey: null,
       createdAt: now,
       updatedAt: now,
       finishedAt: null,
@@ -118,7 +119,7 @@ export class RoomService {
     return { ok: true, value: null, change: change(room) };
   }
 
-  /** El anfitrión cambia las opciones antes de empezar (barra, tiempo para responder, mazo). */
+  /** El anfitrión cambia las opciones antes de empezar (rondas y tiempo de turno). */
   setOptions(roomId: string, playerId: string, options: Partial<RoomOptions>): Outcome<null> {
     const found = this.requireHost(roomId, playerId);
     if (!found.ok) return found;
@@ -145,7 +146,7 @@ export class RoomService {
     if (room.players.some((p) => !p.isConnected)) return fail('PLAYERS_DISCONNECTED');
 
     // Las reglas quedan congeladas dentro del estado del motor. El azar lo pone el servidor.
-    const rules = makeRules({ barMax: room.options.barMax, deckCopies: room.options.deckCopies });
+    const rules = makeRules({ rounds: room.options.rounds });
     const seed = room.testSeed ?? randomInt(2 ** 32 - 1);
     const { state, events } = createGame({ players: room.players.map((p) => ({ id: p.id, name: p.name })), seed, rules });
     room.game = state;
@@ -173,7 +174,8 @@ export class RoomService {
     }
     room.status = 'WAITING';
     room.game = null;
-    room.defenseEndsAt = null;
+    room.deadline = null;
+    room.deadlineKey = null;
     room.finishedAt = null;
     room.testSeed = null;
     this.touch(room);
@@ -264,7 +266,8 @@ export class RoomService {
     if (room.game?.phase === 'finished' && room.status !== 'FINISHED') {
       room.status = 'FINISHED';
       room.finishedAt = this.now();
-      room.defenseEndsAt = null;
+      room.deadline = null;
+      room.deadlineKey = null;
     }
   }
 

@@ -1,6 +1,6 @@
 /**
  * Vistas: lo único que el celular recibe. Nunca incluyen tokens, el mazo, la semilla ni la mano de otro.
- * La partida la arma el motor (playerView) según la borrachera de cada uno.
+ * La partida la arma el motor (playerView): tus cartas todas, de los demás solo las que se ven.
  */
 import type { PlayerView as GamePlayerView } from '@borracho/engine';
 import type { RoomOptions } from './options.js';
@@ -16,8 +16,8 @@ export interface RoomPlayerView {
 }
 
 export type GameView = GamePlayerView & {
-  /** Hasta cuándo puede responder el que tiene el cóctel enfrente (ms desde 1970), o null. */
-  readonly defenseEndsAt: number | null;
+  /** Hasta cuándo tiene para jugar el del turno, o hasta cuándo dura la pausa entre rondas (ms desde 1970). */
+  readonly deadline: number | null;
 };
 
 export interface RoomView {

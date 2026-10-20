@@ -3,9 +3,12 @@ import { PLAYER_LIMITS, normalizeName, normalizeRoomCode } from '@borracho/proto
 import type { OnlineClient, OnlineState } from '../net/OnlineClient';
 import { clearInvite, invitedCode } from '../lib/invite';
 import { readStorage, writeStorage } from '../lib/util';
-import { GlassLogo, ResumeIcon } from '../components/icons';
+import { ResumeIcon } from '../components/icons';
+import { PlayingCard } from '../components/PlayingCard';
+import { parseCardId } from '@borracho/engine';
 
 const NAME_KEY = 'borracho.name';
+const LOGO_CARDS = ['AH', 'KD', 'JC'].map((id) => parseCardId(id)!);
 
 export function HomeScreen({ client, state }: { client: OnlineClient; state: OnlineState }) {
   const [name, setName] = useState(() => readStorage<string>('local', NAME_KEY) ?? '');
@@ -62,19 +65,17 @@ export function HomeScreen({ client, state }: { client: OnlineClient; state: Onl
   return (
     <main className="screen" style={{ gap: 24 }}>
       <div className="logo">
-        <div className="logo-cards" aria-hidden="true">
-          <div className="back" />
-          <div className="front">
-            <GlassLogo />
-          </div>
+        <div className="logo-fan" aria-hidden="true">
+          {LOGO_CARDS.map((c, i) => (
+            <div key={c.id} className={`logo-card logo-card-${i}`}>
+              <PlayingCard card={c} size="table" />
+            </div>
+          ))}
         </div>
-        <div>
-          <div className="pre">EL MÁS</div>
-          <h1>BORRACHO</h1>
-          <p className="muted" style={{ margin: '10px 0 0', fontSize: 15 }}>
-            Armá cócteles, hacé tomar a los demás, no te pases del 100%.
-          </p>
-        </div>
+        <h1>
+          <span>21</span> Amigos de la mesa
+        </h1>
+        <p className="muted">Llegá a 21 sin pasarte. Cada carta es un personaje y hace lo suyo.</p>
       </div>
 
       {state.notice ? <div className="error">{state.notice}</div> : null}
